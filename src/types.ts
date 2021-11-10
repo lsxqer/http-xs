@@ -6,8 +6,14 @@ import { ReadStream } from "fs";
 
 export type Method = "post" | "get" | "put" | "delete" | "head" | "options" | "patch"
 
+export interface XsEventTargetImpl {
+  addEventListener(type: string, listener: (event: any) => void, opts?: Record<string,unknown>): void;
+  dispatchEvent(event: any): void;
+  removeEventListener(type: string, listener:  (event: any) => void)
+}
+
 export interface XsCancelImpl {
-  readonly signal: EventTarget & {
+  readonly signal: XsEventTargetImpl & {
     aborted: boolean
   }
   abort(): void
@@ -192,7 +198,7 @@ export interface BaseConfig {
    * timeout - 该实例下所有请求的延迟毫秒
    */
   readonly timeout?: number
-  
+
   /**
    * baseUrl - 该实例下所有请求的url会和该属性和并
    * @example
@@ -202,7 +208,7 @@ export interface BaseConfig {
    * ...
    * ```
    */
-   readonly baseURL?: string
+  readonly baseURL?: string
 
   /**
    * headers - 该实例下所有请求的公共请求头; 会优先使用实例接口的返回值

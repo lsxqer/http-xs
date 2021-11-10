@@ -1,6 +1,6 @@
 {
   "name": "http-xs",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "main": "./lib/umd/index.js",
   "module": "./lib/esm/index.js",
   "browser": "./lib/umd/index.js",
