@@ -52,7 +52,7 @@ describe("Define request interface", () => {
     const home = defineInterface(httpXs, record);
     return home.getHome().then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("get");
@@ -63,7 +63,7 @@ describe("Define request interface", () => {
     const home = defineInterface(httpXs, record);
     return home.getTableList().then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("post");
@@ -74,7 +74,7 @@ describe("Define request interface", () => {
     const home = defineInterface(httpXs, record);
     return home.update().then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("put");
@@ -85,7 +85,7 @@ describe("Define request interface", () => {
     const home = defineInterface(httpXs, record);
     return home.delete().then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("delete");
@@ -96,7 +96,7 @@ describe("Define request interface", () => {
     const home = defineInterface(httpXs, record);
     return home.options().then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("options");
@@ -107,7 +107,7 @@ describe("Define request interface", () => {
     const home = defineInterface(httpXs, record);
     return home.patch().then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("patch");
@@ -118,7 +118,7 @@ describe("Define request interface", () => {
     const home = defineInterface(httpXs, record);
     return home.head().then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("head");

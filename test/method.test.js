@@ -86,7 +86,7 @@ describe("method:Response", () => {
   test("Get", () => {
     return Get(localUrl).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("get");
@@ -96,7 +96,7 @@ describe("method:Response", () => {
   test("Post", () => {
     return Post(localUrl).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("post");
@@ -106,7 +106,7 @@ describe("method:Response", () => {
   test("Delete", () => {
     return Delete(localUrl).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("delete");
@@ -116,7 +116,7 @@ describe("method:Response", () => {
   test("Put", () => {
     return Put(localUrl).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("put");
@@ -126,7 +126,7 @@ describe("method:Response", () => {
   test("Patch", () => {
     return Patch(localUrl).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("patch");
@@ -136,7 +136,7 @@ describe("method:Response", () => {
   test("Options", () => {
     return Options(localUrl).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("options");
@@ -146,7 +146,7 @@ describe("method:Response", () => {
   test("Head", () => {
     return Head(localUrl).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("head");
@@ -165,7 +165,7 @@ describe("Timeout", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Network Timeout");
+      expect(res.message).to.be.equal("Http-xs: Network Timeout");
       expect(res.type).to.be.equal("timeout");
       expect(res.enhanceConfig.timeout).to.be.equal(1000);
     });
@@ -178,7 +178,7 @@ describe("Timeout", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Network Timeout");
+      expect(res.message).to.be.equal("Http-xs: Network Timeout");
       expect(res.type).to.be.equal("timeout");
       expect(res.enhanceConfig.timeout).to.be.equal(1000);
     });
@@ -191,7 +191,7 @@ describe("Timeout", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Network Timeout");
+      expect(res.message).to.be.equal("Http-xs: Network Timeout");
       expect(res.type).to.be.equal("timeout");
       expect(res.enhanceConfig.timeout).to.be.equal(1000);
     });
@@ -204,7 +204,7 @@ describe("Timeout", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Network Timeout");
+      expect(res.message).to.be.equal("Http-xs: Network Timeout");
       expect(res.type).to.be.equal("timeout");
       expect(res.enhanceConfig.timeout).to.be.equal(1000);
     });
@@ -217,7 +217,7 @@ describe("Timeout", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Network Timeout");
+      expect(res.message).to.be.equal("Http-xs: Network Timeout");
       expect(res.type).to.be.equal("timeout");
       expect(res.enhanceConfig.timeout).to.be.equal(1000);
     });
@@ -231,7 +231,7 @@ describe("Timeout", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Network Timeout");
+      expect(res.message).to.be.equal("Http-xs: Network Timeout");
       expect(res.type).to.be.equal("timeout");
       expect(res.enhanceConfig.timeout).to.be.equal(1000);
     });
@@ -244,7 +244,7 @@ describe("Timeout", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Network Timeout");
+      expect(res.message).to.be.equal("Http-xs: Network Timeout");
       expect(res.type).to.be.equal("timeout");
       expect(res.enhanceConfig.timeout).to.be.equal(1000);
     });
@@ -262,7 +262,7 @@ describe("cancel", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Client Aborted");
+      expect(res.message).to.be.equal("Http-xs: Client Aborted");
       expect(res.type).to.be.equal("aborted");
     });
     xsCancel.abort();
@@ -277,7 +277,7 @@ describe("cancel", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Client Aborted");
+      expect(res.message).to.be.equal("Http-xs: Client Aborted");
       expect(res.type).to.be.equal("aborted");
     });
     xsCancel.abort();
@@ -292,7 +292,7 @@ describe("cancel", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Client Aborted");
+      expect(res.message).to.be.equal("Http-xs: Client Aborted");
       expect(res.type).to.be.equal("aborted");
     });
     xsCancel.abort();
@@ -307,7 +307,7 @@ describe("cancel", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Client Aborted");
+      expect(res.message).to.be.equal("Http-xs: Client Aborted");
       expect(res.type).to.be.equal("aborted");
     });
     xsCancel.abort();
@@ -322,7 +322,7 @@ describe("cancel", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Client Aborted");
+      expect(res.message).to.be.equal("Http-xs: Client Aborted");
       expect(res.type).to.be.equal("aborted");
     });
     xsCancel.abort();
@@ -338,7 +338,7 @@ describe("cancel", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Client Aborted");
+      expect(res.message).to.be.equal("Http-xs: Client Aborted");
       expect(res.type).to.be.equal("aborted");
     });
     xsCancel.abort();
@@ -353,7 +353,7 @@ describe("cancel", () => {
       expect(res.response).to.be.null;
       expect(res.status).to.be.equal(0);
       expect(res.ok).to.be.false;
-      expect(res.statusText).to.be.equal("Http-xs: Client Aborted");
+      expect(res.message).to.be.equal("Http-xs: Client Aborted");
       expect(res.type).to.be.equal("aborted");
     });
     xsCancel.abort();

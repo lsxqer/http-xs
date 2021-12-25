@@ -1,19 +1,19 @@
-import HttpXs from "./constructor";
-import { createXsHeader, toCamelCase, XsHeaders, defaultContentType } from "./xsHeader";
-import { request } from "./core";
-import { Singal, XsCancel, useBefore } from "./xsCancel";
+import createInstance from "./constructor";
+import { toCamelCase, XsHeaders, defaultContentType } from "./header";
+import { schedulerOnSingleRequest } from "./core/request";
+import XsCancel from "./cancel";
 import { Get, Post, Options, Put, Delete, Patch, Head } from "./httpMethod";
 import { applyRequest, defineInterface, RecordInterface, MethodStore, RecordMethod } from "./define";
-import { HttpMethod } from "./types";
-import { promiseResolve, promiseReject } from "./promiseBinding";
+import { HttpMethod } from "./typedef";
+import { promiseResolve, promiseReject } from "./utils";
 
 export type { RecordInterface, MethodStore, RecordMethod };
 
 type Xs = {
-  HttpXs: typeof HttpXs;
   Get: HttpMethod;
   get: HttpMethod;
   Delete: HttpMethod;
+  createInstance: typeof createInstance,
   delete: HttpMethod;
   Post: HttpMethod;
   post: HttpMethod;
@@ -25,12 +25,10 @@ type Xs = {
   patch: HttpMethod;
   Options: HttpMethod;
   options: HttpMethod;
-  request: typeof request;
-  createXsHeader: typeof createXsHeader;
+  request: typeof schedulerOnSingleRequest;
   toCamelCase: typeof toCamelCase;
   XsHeaders: typeof XsHeaders;
-  header: typeof defaultContentType;
-  Singal: typeof Singal;
+  defaultContentType: typeof defaultContentType;
   XsCancel: typeof XsCancel;
   applyRequest: typeof applyRequest;
   defineInterface: typeof defineInterface;
@@ -39,8 +37,7 @@ type Xs = {
 }
 
 const xs: Xs = {
-  HttpXs: HttpXs,
-
+  createInstance,
   Get: Get,
   get: Get,
 
@@ -62,11 +59,11 @@ const xs: Xs = {
   Options: Options,
   options: Options,
 
-  request: request,
+  request: schedulerOnSingleRequest,
 
-  createXsHeader, toCamelCase, XsHeaders, header: defaultContentType,
+  toCamelCase, XsHeaders, defaultContentType: defaultContentType,
 
-  Singal, XsCancel,
+  XsCancel,
 
   applyRequest, defineInterface,
 
@@ -77,8 +74,7 @@ const xs: Xs = {
 
 export {
   xs,
-  HttpXs,
-
+  createInstance,
   Get,
   Get as get,
 
@@ -100,11 +96,11 @@ export {
   Options,
   Options as options,
 
-  request,
+  schedulerOnSingleRequest as request,
 
-  createXsHeader, toCamelCase, XsHeaders, defaultContentType as header,
-  
-  Singal, XsCancel, useBefore,
+  toCamelCase, XsHeaders, defaultContentType,
+
+  XsCancel,
 
   applyRequest, defineInterface,
 
@@ -112,4 +108,4 @@ export {
   promiseReject
 };
 
-export default HttpXs;
+export default xs;

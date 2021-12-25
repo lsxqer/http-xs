@@ -1,4 +1,9 @@
 
+export const promiseResolve = Promise.resolve.bind(Promise);
+
+export const promiseReject = Promise.reject.bind(Promise);
+
+
 const toString = Object.prototype.toString;
 
 export const getType = (tar: unknown): string => toString.call(tar).slice(8, -1);
@@ -8,39 +13,32 @@ export function isObject<T = Record<string, unknown>>(tar: unknown): tar is T {
   return hasInType<T>(tar, "Object");
 }
 
+export function isStream(tar: any) {
+  return isObject(tar) && typeof tar.pipe === "function";
+}
+
 export function isArray<R = any, T extends Array<R> = Array<R>>(tar: unknown): tar is T {
   return Array.isArray(tar);
 }
+
+export const isNode = typeof process !== "undefined" && getType(process) === "process";
+
+export function isAbsoluteURL(url: string) {
+  return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
+}
+
 
 export function isUndef<T>(tar: T): tar is null {
   return tar === null || tar === undefined;
 }
 
-export function isStream(tar: any) {
-  return isObject(tar) && typeof tar.pipe === "function";
-}
-
-export function isFormData<T = FormData>(tar: unknown): tar is T {
-  return typeof tar === "object" && tar instanceof FormData;
-}
-
-export function isArrayBufferView(val) {
-  let result;
-  if ((typeof ArrayBuffer !== "undefined") && (ArrayBuffer.isView)) {
-    result = ArrayBuffer.isView(val);
-  } else {
-    result = (val) && (val.buffer) && (val.buffer instanceof ArrayBuffer);
-  }
-  return result;
-}
-
 /**
- * 
+ *
  * @param tar any
  * @returns boolean
  * @description null undefined length size size() keys
  */
-export function isEmpty(tar: any): boolean {
+ export function isEmpty(tar: any): boolean {
   if (isUndef(tar)) {
     return true;
   }
@@ -59,6 +57,22 @@ export function isEmpty(tar: any): boolean {
   return Object.keys(tar).length === 0;
 }
 
+export function encode(input: string | number | boolean): string {
+  try {
+    return encodeURIComponent(input)
+      .replace(/%3A/gi, ":")
+      .replace(/%24/g, "$")
+      .replace(/%2C/gi, ",")
+      .replace(/%20/g, "+")
+      .replace(/%5B/gi, "[")
+      .replace(/%5D/gi, "]");
+  } catch (e) {
+    console.error(input.toString() + e);
+    return input.toString();
+  }
+}
+
+
 export function forEach<T = any>(target: any, each: (key: string, val: T) => void): void {
   if (target === null || target === undefined) {
     return;
@@ -72,20 +86,4 @@ export function forEach<T = any>(target: any, each: (key: string, val: T) => voi
   for (let [ key, val ] of target as { [Symbol.iterator]() }) {
     each(key, val);
   }
-}
-
-
-export const isNode = typeof process !== "undefined" && getType(process) === "process";
-
-export function isAbsoluteURL(url: string) {
-  return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
-}
-
-export function compose<R>(composeList: ((args: R) => R)[], args: R): R {
-
-  for (let i = 0; i < composeList.length; i++) {
-    args = composeList[i](args);
-  }
-
-  return args;
 }

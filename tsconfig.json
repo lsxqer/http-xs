@@ -18,7 +18,8 @@
     "lib": [
       "ES2015.Core",
       "DOM",
-      "ESNEXT"
+      "ESNEXT",
+      "ESNext.Promise"
     ],
     "strictPropertyInitialization": false,
     "strictNullChecks": false,
@@ -32,7 +33,7 @@
     ]
   },
   "include": [
-    "./src/*",
+    "./src/*"
   ],
   "exclude": [
     "dev/**/*",

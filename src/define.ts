@@ -1,4 +1,4 @@
-import { HttpMethod, Method, RequestInterface, ResponseStruct } from "./types";
+import { HttpMethod, Method, RequestInterface, ResponseStruct } from "./typedef";
 
 export interface RecordInterface {
   [p: string]: {
@@ -24,9 +24,9 @@ export type MethodStore = {
  * 
  * @example
  * ```ts
- * const httpXs = new HttpXs({ baseUrl:"http://api.example"});
+ * const instce = new createInstance({ baseUrl:"http://api.example"});
  * 
- * const user = defineInterface(httpXs, {
+ * const user = defineInterface(instce, {
  *  update: {
  *    method: "put",
  *    url: "/update"
@@ -40,7 +40,7 @@ export type MethodStore = {
  * user.update({ id: 1 });
  * user.delete(id: 2);
  * 
- * const defineInterface = createDefineApi(httpXs);
+ * const defineInterface = createDefineApi(instce);
  * 
  * const home = defineInterface({
  *  getHomePage: {
