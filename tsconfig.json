@@ -33,7 +33,7 @@
     ]
   },
   "include": [
-    "./src/*",
+    "./src/*", "src/core/dispatchRequest.ts", "src/core/req.ts",
   ],
   "exclude": [
     "dev/**/*",

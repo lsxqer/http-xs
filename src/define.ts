@@ -1,50 +1,80 @@
-import { bindPromise, Conf } from "./promise";
-import { Return,Line } from "./return";
-import { objectCreate } from "./utils";
+import { HttpMethod, Method, RequestInterface, ResponseStruct } from "./types";
 
-
-
-
-
-function creator(): [Conf, Return] {
-  const conf = objectCreate<Conf,Line>();
-  // 绑定promise
-  const promise = bindPromise(conf);
-
-  return [conf, new Return(conf, promise)];
+export interface RecordInterface {
+  [p: string]: {
+    method: Method,
+    url: string
+    [key: string]: unknown
+  }
 }
 
+export type RecordMethod<T extends RecordInterface = RecordInterface> = {
+  readonly [k in keyof T]: <F = any, R = ResponseStruct<F>> (config: Exclude<Partial<RequestInterface>, "url">) => Promise<R>
+};
 
-function defineMethod(method: any) {
-
-
-  return function method<T = any>(...argv: any[]): Return<T> {
-
-
-    let [conf, promise] = creator();
-
-
-    setTimeout(() => {
-      conf.promiseResove(1)
-    }, 100);
-
-    /* 
-      合并参数， 生成实例
-    
-    */
-
-
-    return promise;
-  };
+export type MethodStore = {
+  [k in Method]?: HttpMethod
 }
 
+/**
+ * 
+ * @param store {get, post, ...} 请求方法对象
+ * @param record 映射对象
+ * @returns 映射函数
+ * 
+ * @example
+ * ```ts
+ * const httpXs = new HttpXs({ baseUrl:"http://api.example"});
+ * 
+ * const user = defineInterface(httpXs, {
+ *  update: {
+ *    method: "put",
+ *    url: "/update"
+ *  },
+ *  delete: {
+ *    method: "delte",
+ *    url: "/delete"
+ *  }
+ * });
+ * 
+ * user.update({ id: 1 });
+ * user.delete(id: 2);
+ * 
+ * const defineInterface = createDefineApi(httpXs);
+ * 
+ * const home = defineInterface({
+ *  getHomePage: {
+ *    method: "get",
+ *    url: "/get-home-page"
+ *  }
+ * });
+ * 
+ * home.getHomePage({ id: 9 }).then(r => {  });
+ * 
+ * const list = defineInterface({
+ *  getList: {
+ *    method: "get",
+ *    url: "/list"
+ *  }
+ * })
+ * 
+ * list.getList({ page: 1 });
+ * 
+ * ```
+ */
+export function defineInterface(store: MethodStore, record: RecordInterface): RecordMethod {
+  return Object.entries(record).reduce((result, [ key, methodConf ]): RecordMethod => {
+    result[key] = store[methodConf.method].bind(store, methodConf.url);
+    return result;
+  }, {});
+}
 
+/**
+ * 接受一个实例，返回一个函数，函数中使用实例中的方法
+ * @param store {get, post, put...}
+ * @returns defineInterface
+ */
+export function applyRequest(this: any, store: MethodStore) {
+  return defineInterface.bind(this, store);
+}
 
-let get = defineMethod("get");
-
-
-// .header().set("name","v").query()
-console.log(
-  get().then(r => {
-    console.log("1223", r);
-  }).header().set("1",2));
