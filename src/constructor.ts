@@ -1,9 +1,8 @@
-import { exectuce } from "./exectuce";
+import { execuor } from "./exectuce";
 import { HttpMethod, UseMidware, Method } from "./typedef";
 
 
 const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ] as Method[];
-
 
 type HttpXsImpl = {
   [p in Method]: HttpMethod;
@@ -11,15 +10,22 @@ type HttpXsImpl = {
 
 class HttpXs implements HttpXsImpl {
 
-   midware: UseMidware[] = [];
+  midware: UseMidware[];
 
-  post:HttpMethod;
-  get:HttpMethod;
-  delete:HttpMethod;
-  put:HttpMethod;
-  patch:HttpMethod;
-  options:HttpMethod;
-  head:HttpMethod;
+  post: HttpMethod;
+  get: HttpMethod;
+  delete: HttpMethod;
+  put: HttpMethod;
+  patch: HttpMethod;
+  options: HttpMethod;
+  head: HttpMethod;
+
+  constructor() {
+    this.midware = [];
+    methodNamed.forEach(method => {
+      this[method] = execuor(method, this.midware);
+    });
+  }
 
   use(...args: UseMidware[]);
   use(midware: UseMidware[]);
@@ -42,17 +48,7 @@ class HttpXs implements HttpXsImpl {
     return this;
   }
 
-
 }
-
-
-methodNamed.forEach(method => {
-  HttpXs.prototype[method] = (function ( url, options) {
-    // eslint-disable-next-line
-    // @ts-ignore
-    return exectuce(method, this.midware, url, options);
-  }) as HttpMethod;
-});
 
 export {
   HttpXs

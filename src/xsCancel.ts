@@ -1,6 +1,4 @@
 
-import { XsHeaders } from "./xsHeaders";
-import { XsError } from "./fetcher/error";
 import { XsCancelImpl, XsEventTargetImpl } from "./typedef";
 
 
@@ -15,7 +13,7 @@ function getEventTarget() {
       events.once(type, listener);
     }
     dispatchEvent(event: any): void {
-      events.emit("abort", event);
+      events.emit(event.type, event);
     }
     removeEventListener(type: string, listener: any) {
       events.removeListener(type, listener);
@@ -24,6 +22,7 @@ function getEventTarget() {
 
   return XsEventTarget;
 }
+
 
 function getEvent() {
 
@@ -49,7 +48,7 @@ if (typeof EventTarget !== "function") {
   XsEventTarget = EventTarget;
 }
 
-if (typeof XsEvent !== "function") {
+if (typeof Event !== "function") {
   XsEvent = getEvent();
 } else {
   XsEvent = Event;
@@ -78,7 +77,7 @@ export class Singal extends XsEventTarget implements XsEventTargetImpl {
  * 用于取消一次请求
  * 拥有和`AbortController`相同的Api
  */
-export class XsCancel implements XsCancelImpl {
+export class XsCancel  implements XsCancelImpl{
   readonly signal = new Singal();
 
   abort() {
@@ -87,16 +86,5 @@ export class XsCancel implements XsCancelImpl {
   }
 
 }
-
-export function useBefore(callback) {
-  return config => {
-    let next = callback(config);
-    if (next === false) {
-      throw new XsError(0, "Client Request Before Abort", null, config, XsHeaders.from(), "abort");
-    }
-    return next;
-  };
-}
-
 
 export default XsCancel;

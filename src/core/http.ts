@@ -52,7 +52,8 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
   let request;
   if (/^http/.test(requestOptions.protocol)) {
     request = getRequest("http");
-  } else {
+  }
+  else {
     request = getRequest("https");
   }
 

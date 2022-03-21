@@ -1,20 +1,15 @@
-import { exectuce } from "./exectuce";
-import { HttpMethod } from "./typedef";
+import { execuor } from "./exectuce";
 
+export const Get = execuor("get");
 
-const emptyMidware = [];
+export const Post = execuor("post");
 
-export const Get = ((url, options) => exectuce("get", emptyMidware, url, options)) as HttpMethod;
+export const Delete = execuor("delete");
 
-export const Post = ((url, options) => exectuce("post", emptyMidware, url, options)) as HttpMethod;
+export const Put = execuor("put");
 
+export const Patch = execuor("patch");
 
-export const Delete = ((url, options) => exectuce("delete", emptyMidware, url, options)) as HttpMethod;
+export const Options = execuor("options");
 
-export const Put = ((url, options) => exectuce("put", emptyMidware, url, options)) as HttpMethod;
-
-export const Patch = ((url, options) => exectuce("patch", emptyMidware, url, options)) as HttpMethod;
-
-export const Options = ((url, options) => exectuce("options", emptyMidware, url, options)) as HttpMethod;
-
-export const Head = ((url, options) => exectuce("head", emptyMidware, url, options)) as HttpMethod;
+export const Head = execuor("head"); 

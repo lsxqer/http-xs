@@ -1,4 +1,4 @@
-import { HttpMethod, Method, RequestInterface, ResponseStruct } from "./types";
+import { HttpMethod, Method, RequestInterface, ResponseStruct } from "./typedef";
 
 export interface RecordInterface {
   [p: string]: {

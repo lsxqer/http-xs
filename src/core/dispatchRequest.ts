@@ -1,8 +1,8 @@
 
 import { RequestInterface, ResponseStruct } from "../typedef";
-import { fetchRequest, xhrRequest } from "../fetcher/browser";
+import { fetchRequest, xhrRequest } from "./browser";
 import { isNode } from "../utils";
-import { nodeRequest } from "../fetcher/http";
+import { nodeRequest } from "./http";
 
 /**
  * 根据不同情况返回所支持的函数

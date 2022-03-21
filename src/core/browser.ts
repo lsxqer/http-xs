@@ -1,6 +1,6 @@
 import { ResponseStruct, RequestInterface, XsHeaderImpl } from "../typedef";
 import { getType } from "../utils";
-import { createResolve  } from "./succ";
+import { createResolve } from "./succ";
 import { XsError } from "./error";
 import { promiseReject, promiseResolve } from "../utils";
 import { XsHeaders } from "../xsHeaders";
@@ -39,7 +39,7 @@ export function xhrRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfac
 
   (opts.headers as XsHeaderImpl).forEach((val, key) => xhr.setRequestHeader(key, val));
 
-  if (Number.isInteger(opts.timeout)) {
+  if (typeof opts.timeout === "number" && !Number.isNaN(opts.timeout)) {
     xhr.timeout = opts.timeout;
   }
   if (typeof opts.withCredentials === "boolean") {

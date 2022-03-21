@@ -1,7 +1,7 @@
 import HttpXs from "./constructor";
 import { toCamelCase, XsHeaders, defaultContentType } from "./xsHeaders";
 import { request } from "./core/request";
-import { Singal, XsCancel, useBefore } from "./xsCancel";
+import { Singal, XsCancel } from "./xsCancel";
 import { Get, Post, Options, Put, Delete, Patch, Head } from "./httpMethod";
 import { applyRequest, defineInterface, RecordInterface, MethodStore, RecordMethod } from "./define";
 import { HttpMethod } from "./typedef";
@@ -103,7 +103,7 @@ export {
 
   toCamelCase, XsHeaders, defaultContentType as header,
 
-  Singal, XsCancel, useBefore,
+  Singal, XsCancel,
 
   applyRequest, defineInterface,
 

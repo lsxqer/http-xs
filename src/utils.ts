@@ -20,7 +20,6 @@ export function isObject<T = Record<string, unknown>>(tar: unknown): tar is T {
   return hasInType<T>(tar, "Object");
 }
 
-
 export function isStream(tar: any) {
   return isObject(tar) && typeof tar.pipe === "function";
 }
@@ -66,17 +65,6 @@ export function isUndef<T>(tar: T): tar is null {
   return Object.keys(tar).length === 0;
 }
 
-
-export function decode(input: string): string {
-  try {
-    return decodeURIComponent(input.replace(/\+/g, ""));
-  } catch (e) {
-    console.error(input.toString() + e);
-    return input.toString();
-  }
-}
-
-
 export function encode(input: string | number | boolean): string {
   try {
     return encodeURIComponent(input)
@@ -86,10 +74,6 @@ export function encode(input: string | number | boolean): string {
       .replace(/%20/g, "+")
       .replace(/%5B/gi, "[")
       .replace(/%5D/gi, "]");
-
-    // encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
-    //   return '%' + c.charCodeAt(0).toString(16);
-    // })
   } catch (e) {
     console.error(input.toString() + e);
     return input.toString();

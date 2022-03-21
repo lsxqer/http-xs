@@ -2,9 +2,12 @@ import { RequestInterface, UseMidware } from "./typedef";
 import { promiseReject, promiseResolve } from "./utils";
 
 
-export function koaCompose(fns:UseMidware[]) {
+const noopArray = [];
+
+export function koaCompose(fns:UseMidware[] = noopArray) {
 
   return function execute(req:RequestInterface, fetcher:any) {
+
     let index = -1;
 
     function run(i:number) {

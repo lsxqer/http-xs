@@ -1,19 +1,19 @@
-import { parseQueryString, transfromData } from "./req";
+import {  transfromRequestPayload } from "./transform";
+import { appendQueryToUrl } from "./query";
 import { RequestInterface } from "../typedef";
 import {  isUndef } from "../utils";
 import { XsHeaders } from "../xsHeaders";
 import dispatchRequest from "./dispatchRequest";
-import { transfromResponse } from "./res";
+import { transfromResponse } from "./transform";
 
 
 export async function request(options: RequestInterface) {
 
-	// ~ /test?id=10 & { query: { name:"1123" } } -> /test &  { query: { name:"1123", id: 10 } }
-	[ options.url, options.query ] = parseQueryString(options);
+	options.url = appendQueryToUrl(options.url, options.query);
 
 	options.headers = XsHeaders.from(options.headers);
 
-	options.body = transfromData(options);
+	options.body = transfromRequestPayload(options);
 
 	// 分配request
 	let localRequest = dispatchRequest(options);

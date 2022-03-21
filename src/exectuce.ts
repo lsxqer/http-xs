@@ -1,13 +1,15 @@
 import { koaCompose } from "./compose";
 import { request } from "./core/request";
-import { Method, RequestInterface, UseMidware } from "./typedef";
+import { HttpMethod, Method, RequestInterface, UseMidware } from "./typedef";
 import { forEach, isObject } from "./utils";
 
 
-function maergeConfig(
-  url: string | Partial<RequestInterface>, options?: Partial<RequestInterface>
-):RequestInterface {
+function mergeConfig(
+  method: Method,
+  url: string | Partial<RequestInterface>,
+  options?: Partial<RequestInterface>
 
+): RequestInterface {
   let nextOpts = (options ?? {}) as RequestInterface;
 
   if (isObject(url)) {
@@ -16,19 +18,24 @@ function maergeConfig(
   else {
     nextOpts.url = url;
   }
-  
+
+  nextOpts.method = method;
+
   return nextOpts;
 }
 
 
-export function exectuce(
-  method:Method,
-  midware: UseMidware[],
-  url: string,
-  options?: RequestInterface
+export function schedulerOnSingleRequest(
+  compleateOtps: RequestInterface,
+  midware: UseMidware[]
 ) {
-
-  let compleateOtps = maergeConfig(url, options);
-  compleateOtps.method = method;
   return koaCompose(midware)(compleateOtps, request);
+}
+
+
+export function execuor(method: Method, midware?: UseMidware[]): HttpMethod {
+
+  const fetcher = ((url, options) => schedulerOnSingleRequest(mergeConfig(method, url, options), midware)) as HttpMethod;
+
+  return fetcher;
 }

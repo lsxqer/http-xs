@@ -1,4 +1,4 @@
-import { RequestInterface, XsHeaderImpl } from "../../srcold/types";
+import { RequestInterface, XsHeaderImpl } from "../typedef";
 import { NetworkType } from "./error";
 
 export function createResolve<T = any, Q extends RequestInterface= RequestInterface>(
