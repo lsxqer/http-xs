@@ -53,7 +53,7 @@ export class XsHeaders extends URLSearchParams {
   }
 
   static from(defaultRecord?: Record<string, string> | [string, string][] | XsHeaderImpl) {
-    
+
     if (typeof Headers !== "undefined" && defaultRecord instanceof Headers) {
       let xsHeader = new XsHeaders();
       defaultRecord.forEach((val, key) => {

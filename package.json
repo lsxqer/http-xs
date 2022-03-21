@@ -72,5 +72,8 @@
     "index.d.ts",
     "lib",
     "@types"
-  ]
+  ],
+  "dependencies": {
+    "axios": "^0.26.1"
+  }
 }

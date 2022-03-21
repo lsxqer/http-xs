@@ -58,6 +58,7 @@ export function transfromRequestPayload(opts: RequestInterface) {
 export function transfromResponse(responseStruct: any, responseType: string) {
   let response = responseStruct.response;
 
+
   switch (responseType.toLowerCase()) {
     case "blob":
     case "stream":
@@ -74,13 +75,11 @@ export function transfromResponse(responseStruct: any, responseType: string) {
     case "text":
     case "utf8":
     case "json":
-      /**
-       * fetch 会默认选择会json, xhr对象支持响应json格式。所以在浏览器环境返回就可
-       */
+      //  fetch 会默认选择会json, xhr对象支持响应json格式。所以在浏览器环境返回就可
       if (!isNode) {
         break;
       }
-    /* eslint-disable no-fallthrough*/
+    /* eslint-disable no-fallthrough */
     default: {
       response = response.toString("utf-8");
 
@@ -88,7 +87,7 @@ export function transfromResponse(responseStruct: any, responseType: string) {
       if (typeof response === "string" && ([ "text", "utf8" ].includes(responseType) === false)) {
         try {
           response = JSON.parse(response);
-        } catch (err) { }/* eslint-disable-line no-empty*/
+        } catch (err) { }/* eslint-disable-line no-empty */
       }
     }
   }

@@ -44,13 +44,15 @@ let XsEventTarget: any, XsEvent;
 
 if (typeof EventTarget !== "function") {
   XsEventTarget = getEventTarget();
-} else {
+}
+else {
   XsEventTarget = EventTarget;
 }
 
 if (typeof Event !== "function") {
   XsEvent = getEvent();
-} else {
+}
+else {
   XsEvent = Event;
 }
 
@@ -77,7 +79,7 @@ export class Singal extends XsEventTarget implements XsEventTargetImpl {
  * 用于取消一次请求
  * 拥有和`AbortController`相同的Api
  */
-export class XsCancel  implements XsCancelImpl{
+export class XsCancel implements XsCancelImpl {
   readonly signal = new Singal();
 
   abort() {

@@ -11,7 +11,7 @@ export class XsError<T = any, R = RequestInterface> extends Error {
   type: NetworkType
 
   status: number;
-  statusText: string;
+  message: string;
 
   headers: XsHeaderImpl;
   requestConfig: R;
@@ -26,7 +26,7 @@ export class XsError<T = any, R = RequestInterface> extends Error {
   ) {
     super(message);
     this.status = status;
-    this.statusText = message;
+    this.message = message;
     this.timeout = timeout;
     this.requestConfig = req;
     this.headers = headers;

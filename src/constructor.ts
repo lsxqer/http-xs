@@ -8,6 +8,7 @@ type HttpXsImpl = {
   [p in Method]: HttpMethod;
 };
 
+// 添加构造函数选择
 class HttpXs implements HttpXsImpl {
 
   midware: UseMidware[];

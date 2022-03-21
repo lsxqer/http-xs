@@ -1,5 +1,3 @@
-
-
 export const objectCreate = <
   T extends Record<string, any> = Record<string, any>,
   U extends Record<string, any> = Record<string, any>,
@@ -24,7 +22,6 @@ export function isStream(tar: any) {
   return isObject(tar) && typeof tar.pipe === "function";
 }
 
-
 export function isArray<R = any, T extends Array<R> = Array<R>>(tar: unknown): tar is T {
   return Array.isArray(tar);
 }
@@ -41,7 +38,7 @@ export function isUndef<T>(tar: T): tar is null {
 }
 
 /**
- * 
+ *
  * @param tar any
  * @returns boolean
  * @description null undefined length size size() keys

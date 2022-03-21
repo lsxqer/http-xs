@@ -3,8 +3,8 @@ import { appendQueryToUrl } from "./query";
 import { RequestInterface } from "../typedef";
 import {  isUndef } from "../utils";
 import { XsHeaders } from "../xsHeaders";
-import dispatchRequest from "./dispatchRequest";
 import { transfromResponse } from "./transform";
+import dispatchRequest from "./dispatchRequest";
 
 
 export async function request(options: RequestInterface) {

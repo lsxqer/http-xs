@@ -27,9 +27,9 @@ export interface ResponseStruct<T = any, R = RequestInterface> {
   status: number;
 
   /**
-   * statusText - 请求响应的描述信息
+   * message - 请求响应的描述信息
    */
-  statusText: string;
+  message: string;
 
   /**
    * timeout - 响应时间
@@ -49,10 +49,9 @@ export interface ResponseStruct<T = any, R = RequestInterface> {
   headers: XsHeaderImpl;
 
   /**
-   * enhanceConfig - 本次请求最终使用到的请求参数
+   * completeConfig - 本次请求最终使用到的请求参数
    */
-  requestConfig: R;
-
+   completeConfig: R;
 }
 
 

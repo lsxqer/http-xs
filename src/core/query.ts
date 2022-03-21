@@ -2,7 +2,7 @@
 import { encode, forEach, isAbsoluteURL, isObject, isUndef } from "../utils";
 
 export function appendQueryToUrl(originalUrl = "", sourceQuery) {
-  
+
   if (!isAbsoluteURL(originalUrl)) {
     originalUrl = originalUrl.replace(/^\/*/, "/").replace(/\/*$/, "").replace(/\s*/g, "").replace(/#[\w\W]*/g, "");
   }
@@ -21,6 +21,7 @@ export function appendQueryToUrl(originalUrl = "", sourceQuery) {
       nextQueryRaw = sourceQuery.toString();
     }
     else if (isObject(sourceQuery)) {
+      // ?todo: 注意val是数组的情况
       let queryQue = [];
 
       forEach(sourceQuery, (key, val) => {
@@ -30,9 +31,9 @@ export function appendQueryToUrl(originalUrl = "", sourceQuery) {
       });
       nextQueryRaw = queryQue.join("&");
     }
-  }
 
-  originalUrl += hasUrlInQuery ? "&" : `?${  nextQueryRaw}`;
+    originalUrl += hasUrlInQuery ? "&" : `?${nextQueryRaw}`;
+  }
 
   return originalUrl;
 }

@@ -28,7 +28,7 @@ describe("instance:Promise", () => {
     return inst.get({
     }).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("get");
@@ -38,7 +38,7 @@ describe("instance:Promise", () => {
   test("inst:post", () => {
     return inst.post(undefined).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("post");
@@ -48,7 +48,7 @@ describe("instance:Promise", () => {
   test("inst:put", () => {
     return inst.put(null).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("put");
@@ -58,7 +58,7 @@ describe("instance:Promise", () => {
   test("inst:head", () => {
     return inst.head({}).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("head");
@@ -68,7 +68,7 @@ describe("instance:Promise", () => {
   test("inst:patch", () => {
     return inst.patch({}).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("patch");
@@ -78,7 +78,7 @@ describe("instance:Promise", () => {
   test("inst:options", () => {
     return inst.options({}).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("options");
@@ -88,7 +88,7 @@ describe("instance:Promise", () => {
   test("inst:delete", () => {
     return inst.delete({}).then(res => {
       expect(res.ok).to.be.true;
-      expect(res.statusText).to.be.equal("OK");
+      expect(res.message).to.be.equal("OK");
       expect(res.status).to.be.equal(200);
       expect(res.type).to.be.equal("default");
       expect(res.enhanceConfig.method).to.be.equal("delete");

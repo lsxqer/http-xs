@@ -108,7 +108,7 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
     if (typeof opts.timeout === "number") {
       req.setTimeout(opts.timeout, function onTimeout() {
         req.destroy();
-        return reject(new XsError(0, "Http-xs: Network Timeout", null, opts, XsHeaders.from(), "timeout"));
+        return reject(new XsError(0, `Http-xs: Network Timeout of ${  opts.timeout  }ms`, null, opts, XsHeaders.from(), "timeout"));
       });
     }
 

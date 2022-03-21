@@ -7,7 +7,7 @@ export function createResolve<T = any, Q extends RequestInterface= RequestInterf
   response: T,
   header: XsHeaderImpl,
   status: number,
-  statusText: string,
+  message: string,
   type: NetworkType = "default"
 
 ) {
@@ -18,9 +18,9 @@ export function createResolve<T = any, Q extends RequestInterface= RequestInterf
     status: status,
     ok: status === 200,
     timeout: Number.isInteger(requestConf.timeout) ? requestConf.timeout : null,
-    statusText: statusText,
+    message: message,
     type: type,
-    enhanceConfig: requestConf
+    completeConfig: requestConf
   };
 
   return resolve(successStruct);
