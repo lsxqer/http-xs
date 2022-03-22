@@ -51,7 +51,7 @@ export interface ResponseStruct<T = any, R = RequestInterface> {
   /**
    * completeConfig - 本次请求最终使用到的请求参数
    */
-   completeConfig: R;
+  completeConfig: R;
 }
 
 
@@ -158,6 +158,7 @@ export interface RequestInterface {
    *  - transformationRequest[]
    */
   //  transformationRequest?: R
+  use?: UseMidware[]
 
   /**
    * TransformationResponse - 用户响应数据的转换属性
@@ -224,7 +225,7 @@ export interface XsEventTargetImpl {
 }
 
 export interface XsCancelImpl {
-   signal: XsEventTargetImpl & {
+  signal: XsEventTargetImpl & {
     aborted: boolean
   }
   abort(): void

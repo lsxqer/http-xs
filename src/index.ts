@@ -1,6 +1,6 @@
-import HttpXs from "./constructor";
+import HttpXs, { createInstance } from "./constructor";
 import { toCamelCase, XsHeaders, defaultContentType } from "./xsHeaders";
-import { request } from "./core/request";
+import { schedulerOnSingleRequest } from "./core/request";
 import { Singal, XsCancel } from "./xsCancel";
 import { Get, Post, Options, Put, Delete, Patch, Head } from "./httpMethod";
 import { applyRequest, defineInterface, RecordInterface, MethodStore, RecordMethod } from "./define";
@@ -14,6 +14,7 @@ type Xs = {
   Get: HttpMethod;
   get: HttpMethod;
   Delete: HttpMethod;
+  createInstance: typeof createInstance,
   delete: HttpMethod;
   Post: HttpMethod;
   post: HttpMethod;
@@ -25,7 +26,7 @@ type Xs = {
   patch: HttpMethod;
   Options: HttpMethod;
   options: HttpMethod;
-  request: typeof request;
+  request: typeof schedulerOnSingleRequest;
   toCamelCase: typeof toCamelCase;
   XsHeaders: typeof XsHeaders;
   header: typeof defaultContentType;
@@ -39,7 +40,7 @@ type Xs = {
 
 const xs: Xs = {
   HttpXs: HttpXs,
-
+  createInstance,
   Get: Get,
   get: Get,
 
@@ -61,7 +62,7 @@ const xs: Xs = {
   Options: Options,
   options: Options,
 
-  request: request,
+  request: schedulerOnSingleRequest,
 
   toCamelCase, XsHeaders, header: defaultContentType,
 
@@ -77,7 +78,7 @@ const xs: Xs = {
 export {
   xs,
   HttpXs,
-
+  createInstance,
   Get,
   Get as get,
 
@@ -99,7 +100,7 @@ export {
   Options,
   Options as options,
 
-  request,
+  schedulerOnSingleRequest as request,
 
   toCamelCase, XsHeaders, defaultContentType as header,
 

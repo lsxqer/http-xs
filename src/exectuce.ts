@@ -1,41 +1,35 @@
-import { koaCompose } from "./compose";
-import { request } from "./core/request";
-import { HttpMethod, Method, RequestInterface, UseMidware } from "./typedef";
+import { schedulerOnSingleRequest } from "./core/request";
+import { HttpMethod, Method, RequestInterface } from "./typedef";
 import { forEach, isObject } from "./utils";
 
 
-function mergeConfig(
-  method: Method,
+// reset -> 重复
+export function mergeConfig(
   url: string | Partial<RequestInterface>,
-  options?: Partial<RequestInterface>
-
+  options?: Partial<RequestInterface>,
+  method?: Method
 ): RequestInterface {
-  let nextOpts = (options ?? {}) as RequestInterface;
+  let completeOpts: RequestInterface = {};
 
   if (isObject(url)) {
-    forEach(url, (key, val) => nextOpts[key] = val);
+    forEach(url, (key, val) => completeOpts[key] = val);
   }
   else {
-    nextOpts.url = url;
+    completeOpts.url = url;
+  }
+  if (isObject(options)) {
+    forEach(options, (key, val) => completeOpts[key] = val);
   }
 
-  nextOpts.method = method;
+  completeOpts.method = method;
 
-  return nextOpts;
+  return completeOpts;
 }
 
 
-export function schedulerOnSingleRequest(
-  compleateOtps: RequestInterface,
-  midware: UseMidware[]
-) {
-  return koaCompose(midware)(compleateOtps, request);
-}
+export function execuor(method: Method): HttpMethod {
 
+  const httpMethod = ((url, options) => schedulerOnSingleRequest(mergeConfig(url, options, method))) as HttpMethod;
 
-export function execuor(method: Method, midware?: UseMidware[]): HttpMethod {
-
-  const fetcher = ((url, options) => schedulerOnSingleRequest(mergeConfig(method, url, options), midware)) as HttpMethod;
-
-  return fetcher;
+  return httpMethod;
 }

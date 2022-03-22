@@ -6,7 +6,7 @@ const noopArray = [];
 
 export function koaCompose(fns:UseMidware[] = noopArray) {
 
-  return function execute(req:RequestInterface, fetcher:any) {
+  return function execute(req:RequestInterface, finished:any) {
 
     let index = -1;
 
@@ -17,7 +17,7 @@ export function koaCompose(fns:UseMidware[] = noopArray) {
         return promiseReject(new Error("next() called"));
       }
       if (fns.length === i) {
-        fn = fetcher;
+        fn = finished;
       }
       if (typeof fn !== "function") {
         return promiseResolve();
