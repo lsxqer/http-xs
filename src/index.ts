@@ -3,7 +3,7 @@ import { toCamelCase, XsHeaders, defaultContentType } from "./header";
 import { schedulerOnSingleRequest } from "./core/request";
 import XsCancel from "./cancel";
 import { Get, Post, Options, Put, Delete, Patch, Head } from "./httpMethod";
-import { applyRequest, defineInterface, RecordInterface, MethodStore, RecordMethod } from "./define";
+import { deriveInterfaceWrapper, defineInterface, RecordInterface, MethodStore, RecordMethod } from "./define";
 import { HttpMethod } from "./typedef";
 import { promiseResolve, promiseReject } from "./utils";
 
@@ -30,7 +30,7 @@ type Xs = {
   XsHeaders: typeof XsHeaders;
   defaultContentType: typeof defaultContentType;
   XsCancel: typeof XsCancel;
-  applyRequest: typeof applyRequest;
+  deriveInterfaceWrapper: typeof deriveInterfaceWrapper;
   defineInterface: typeof defineInterface;
   promiseReject: typeof promiseReject;
   promiseResolve: typeof promiseResolve;
@@ -65,7 +65,7 @@ const xs: Xs = {
 
   XsCancel,
 
-  applyRequest, defineInterface,
+  deriveInterfaceWrapper, defineInterface,
 
   promiseResolve: promiseResolve,
   promiseReject: promiseReject
@@ -102,7 +102,7 @@ export {
 
   XsCancel,
 
-  applyRequest, defineInterface,
+  deriveInterfaceWrapper, defineInterface,
 
   promiseResolve,
   promiseReject

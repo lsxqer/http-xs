@@ -40,7 +40,7 @@ export type MethodStore = {
  * user.update({ id: 1 });
  * user.delete(id: 2);
  * 
- * const defineInterface = createDefineApi(instce);
+ * const defineInterface = deriveInterfaceWrapper(instce);
  * 
  * const home = defineInterface({
  *  getHomePage: {
@@ -74,7 +74,7 @@ export function defineInterface(store: MethodStore, record: RecordInterface): Re
  * @param store {get, post, put...}
  * @returns defineInterface
  */
-export function applyRequest(this: any, store: MethodStore) {
+export function deriveInterfaceWrapper(this: any, store: MethodStore) {
   return defineInterface.bind(this, store);
 }
 
