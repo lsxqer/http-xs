@@ -13,8 +13,12 @@ export function isObject<T = Record<string, unknown>>(tar: unknown): tar is T {
   return hasInType<T>(tar, "Object");
 }
 
+export function isFunction<T = () => void>(tar: unknown): tar is T {
+  return tar instanceof Function;
+}
+
 export function isStream(tar: any) {
-  return isObject(tar) && typeof tar.pipe === "function";
+  return isObject(tar) && typeof isFunction(tar.pipe);
 }
 
 export function isArray<R = any, T extends Array<R> = Array<R>>(tar: unknown): tar is T {
@@ -38,7 +42,7 @@ export function isUndef<T>(tar: T): tar is null {
  * @returns boolean
  * @description null undefined length size size() keys
  */
- export function isEmpty(tar: any): boolean {
+export function isEmpty(tar: any): boolean {
   if (isUndef(tar)) {
     return true;
   }
@@ -46,12 +50,12 @@ export function isUndef<T>(tar: T): tar is null {
     return tar.length === 0;
   }
   if ("size" in tar) {
-    return typeof tar.size === "function" ? tar.size() === 0 : tar.size === 0;
+    return isFunction(tar.size) ? tar.size() === 0 : tar.size === 0;
   }
   if ("byteLength" in tar) {
     return tar.byteLength === 0;
   }
-  if (typeof tar.keys === "function") {
+  if (isFunction(tar.keys)) {
     return tar.keys().length === 0;
   }
   return Object.keys(tar).length === 0;
@@ -80,9 +84,11 @@ export function forEach<T = any>(target: any, each: (key: string, val: T) => voi
   if ("forEach" in target) {
     return target.forEach(each);
   }
+
   if (isObject(target)) {
     return Object.entries(target).forEach(([ key, value ]) => each(key, value as T));
   }
+
   for (let [ key, val ] of target as { [Symbol.iterator]() }) {
     each(key, val);
   }

@@ -3,7 +3,7 @@
     "target": "es2015",
     "module": "ESNext",
     "declaration": true,
-    "noEmit": true,
+    "noEmit": false,
     "isolatedModules": true,
     "declarationDir": "./@types",
     "declarationMap": false,
@@ -30,7 +30,8 @@
     "types": [
       "node",
       "jest"
-    ]
+    ],
+    "typeRoots": ["./index.d.ts"]
   },
   "include": [
     "./src/*"

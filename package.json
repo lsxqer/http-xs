@@ -1,15 +1,15 @@
 {
   "name": "http-xs",
   "version": "1.0.8",
-  "main": "./lib/umd/index.js",
+  "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
-  "browser": "./lib/umd/index.js",
+  "browser": "./lib/iife/index.js",
   "typings": "./index.d.ts",
   "author": "龙修",
   "license": "MIT",
   "scripts": {
-    "build": "node ./clear.js && rollup --config ./rollup.config.js ",
     "dev": "rollup --config ./rollup.config.js --watch",
+    "build": "node ./build.js",
     "tsc": "tsc -p ./tsconfig.json",
     "lint": "eslint ./src --fix --ext .ts",
     "test": "jest",
@@ -24,9 +24,10 @@
     "@types/chai": "^4.2.22",
     "@types/jest": "^27.0.2",
     "@types/node": "^15.14.9",
-    "@typescript-eslint/eslint-plugin": "^4.26.1",
-    "@typescript-eslint/parser": "^4.33.0",
+    "@typescript-eslint/eslint-plugin": "^5.17.0",
+    "@typescript-eslint/parser": "^5.17.0",
     "chai": "^4.3.4",
+    "esbuild": "^0.14.29",
     "eslint": "^7.28.0",
     "jest": "^27.3.1",
     "pre-commit": "^1.2.2",
@@ -40,7 +41,6 @@
     "rollup-plugin-uglify": "^5.0.2",
     "ts-jest": "^27.0.7",
     "ts-node": "^10.4.0",
-    "typescript": "^4.4.4",
     "vite": "^2.7.6"
   },
   "keywords": [
@@ -72,8 +72,5 @@
     "index.d.ts",
     "lib",
     "@types"
-  ],
-  "dependencies": {
-    "axios": "^0.26.1"
-  }
+  ]
 }

@@ -4,7 +4,7 @@ import XsHeaders, { defaultContentType } from "./header";
 import { UseMidware, Method, RequestInterface, XsHeaderImpl } from "./typedef";
 import { isObject, promiseReject, promiseResolve } from "./utils";
 import XsCancel from "./cancel";
-import { applyRequest, defineInterface } from "src";
+import { deriveInterfaceWrapper, defineInterface } from "src";
 
 const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ] as Method[];
 
@@ -94,7 +94,7 @@ function createInstance(defaultInstaceConfig?: DefaultConfig) {
   instce.XsCancel = XsCancel;
   instce.XsHeader = XsHeaders;
   instce.defaultContentType = { ...defaultContentType };
-  instce.applyRequest = applyRequest;
+  instce.deriveInterfaceWrapper = deriveInterfaceWrapper;
   instce.defineInterface = defineInterface;
   instce.promiseResolve = promiseResolve;
   instce.promiseReject = promiseReject;
