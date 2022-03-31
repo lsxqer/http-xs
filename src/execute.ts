@@ -4,7 +4,7 @@ import { forEach, isObject } from "./utils";
 
 
 // reset -> 重复
-export function mergeConfig(
+export function resolveConfig(
   url: string | Partial<RequestInterface>,
   options?: Partial<RequestInterface>,
   method?: Method
@@ -17,6 +17,7 @@ export function mergeConfig(
   else {
     completeOpts.url = url;
   }
+  
   if (isObject(options)) {
     forEach(options, (key, val) => completeOpts[key] = val);
   }
@@ -27,9 +28,9 @@ export function mergeConfig(
 }
 
 
-export function execuor(method: Method): HttpMethod {
+export function execute(method: Method): HttpMethod {
 
-  const httpMethod = ((url, options) => schedulerOnSingleRequest(mergeConfig(url, options, method))) as HttpMethod;
+  const httpMethod = ((url, options) => schedulerOnSingleRequest(resolveConfig(url, options, method))) as HttpMethod;
 
   return httpMethod;
 }

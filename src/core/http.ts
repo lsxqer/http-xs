@@ -1,11 +1,10 @@
-import { XsHeaders } from "../xsHeaders";
-import { createResolve } from "./succ";
-import { XsError } from "./error";
+import XsHeaders from "../header";
+import { XsError, createResolve } from "./complete";
 import { Stream } from "stream";
 import { ResponseStruct, ClientRequestArgs, IncomingMessage, ClientRequest, RequestInterface, XsHeaderImpl } from "../typedef";
 import { isStream } from "../utils";
 import { promiseReject } from "../utils";
-import { checkFetchStatus } from "./check";
+import { validateFetchStatus } from "./validateCode";
 
 function getRequest(type: "http" | "https"): ClientRequest {
   if (type === "http") {
@@ -28,7 +27,7 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
       requestOptions = require("url").urlToHttpOptions(new URL(opts.url));
     } catch (exx) {
       // handle parse url errx
-      return promiseReject(new XsError(0, `Http-xs: Parser Url Error ${exx.toString()}`, null, opts, XsHeaders.from(), "error"));
+      return promiseReject(new XsError(0, `Http-xs: Parser Url Error ${exx.toString()}`, null, opts, new XsHeaders(), "error"));
     }
   }
 
@@ -64,11 +63,11 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
       let chunks = [];
       let stream = res;
 
-      let resHeader = XsHeaders.from(res.headers as Record<string, string>);
+      let resHeader = new XsHeaders(res.headers as Record<string, string>);
 
       res.on("error", function onError(err) {
         res.resume();
-        return reject(new XsError(0, `Http-xs: ${err.message} ${err.stack}`, null, opts, XsHeaders.from(), "error"));
+        return reject(new XsError(0, `Http-xs: ${err.message} ${err.stack}`, null, opts, resHeader, "error"));
       });
 
       if (typeof opts.encoding !== "undefined") {
@@ -84,13 +83,13 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
 
       stream.on("error", function onError(exx) {
         if (req.destroyed) { return }
-        return reject(new XsError(0, `Http-xs: ${exx.message} ${exx.stack}`, null, opts, XsHeaders.from(), "error"));
+        return reject(new XsError(0, `Http-xs: ${exx.message} ${exx.stack}`, null, opts, resHeader, "error"));
       });
 
       stream.on("end", function onStreameEnd() {
         let responseBuffer = Buffer.concat(chunks);
         createResolve(
-          checkFetchStatus(res.statusCode, resolve, reject),
+          validateFetchStatus(res.statusCode, resolve, reject),
           opts,
           responseBuffer,
           resHeader,
@@ -100,15 +99,17 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
       });
     });
 
+    let errorHeader = new XsHeaders();
+
     req.on("error", function onError(exx) {
       if (req.destroyed) { return }
-      return reject(new XsError(0, `Http-xs: Network Error\n${exx.message} ${exx.stack}`, null, opts, XsHeaders.from(), "error"));
+      return reject(new XsError(0, `Http-xs: Network Error\n${exx.message} ${exx.stack}`, null, opts, errorHeader, "error"));
     });
 
     if (typeof opts.timeout === "number") {
       req.setTimeout(opts.timeout, function onTimeout() {
         req.destroy();
-        return reject(new XsError(0, `Http-xs: Network Timeout of ${  opts.timeout  }ms`, null, opts, XsHeaders.from(), "timeout"));
+        return reject(new XsError(0, `Http-xs: Network Timeout of ${opts.timeout}ms`, null, opts, errorHeader, "timeout"));
       });
     }
 
@@ -118,17 +119,17 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
         if (opts.cancel.signal.aborted) { return }
         req.destroy();
         cancel = null;
-        return reject(new XsError(0, "Http-xs: Client Abort", null, opts, XsHeaders.from(), "abort"));
+        return reject(new XsError(0, "Http-xs: Client Abort", null, opts, errorHeader, "abort"));
       };
 
       opts.cancel.signal.addEventListener("abort", cancel, { once: true });
     }
 
-    req.on("abort", () => reject(new XsError(0, "Http-xs: Client Abort", null, opts, XsHeaders.from(), "abort")));
+    req.on("abort", () => reject(new XsError(0, "Http-xs: Client Abort", null, opts, errorHeader, "abort")));
 
     if (isStream(body)) {
       (body as Stream).on("error", function onError(exx) {
-        return reject(new XsError(0, `Http-xs: Request data error\n${exx.message} ${exx.stack}`, null, opts, XsHeaders.from(), "error"));
+        return reject(new XsError(0, `Http-xs: Request data error\n${exx.message} ${exx.stack}`, null, opts, errorHeader, "error"));
       }).pipe(req);
     }
     else {

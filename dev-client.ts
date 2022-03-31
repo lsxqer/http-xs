@@ -31,7 +31,7 @@ xsClient.use(
 const cancel = new XsCancel();
 
 
-xsClient.post(url, { body: JSON.stringify({ name: "大粑粑" }), requestName:"xhr"})
+xsClient.post(url, { body: JSON.stringify({ name: "大粑粑" }), requestMode:"xhr"})
   .then(r => {
     console.log(typeof r);
   });

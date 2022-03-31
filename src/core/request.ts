@@ -2,19 +2,19 @@ import { transfromRequestPayload } from "./transform";
 import { appendQueryToUrl } from "./query";
 import { RequestInterface } from "src/typedef";
 import { isUndef } from "src/utils";
-import { XsHeaders } from "src/xsHeaders";
+import { XsHeaders } from "../header";
 import { transfromResponse } from "./transform";
 import dispatchRequest from "./dispatchRequest";
 import { koaCompose } from "src/compose";
 
 export function schedulerOnSingleRequest(
-	config: RequestInterface
+	completeOpts: RequestInterface
 ) {
-	return koaCompose(config.use)(config, async function requestExection(options: RequestInterface) {
+	return koaCompose(completeOpts.use)(completeOpts, async function requestExection(options: RequestInterface) {
 
 		options.url = appendQueryToUrl(options.url, options.query);
 
-		options.headers = XsHeaders.from(options.headers);
+		options.headers = new XsHeaders(options.headers);
 
 		options.body = transfromRequestPayload(options);
 
@@ -23,9 +23,12 @@ export function schedulerOnSingleRequest(
 
 		let responseType = options.responseType;
 
-		// 设置默认responseType
+		// responType为空时设置默认responseType
 		if (isUndef(responseType)) {
-			responseType = options.responseType = options.requestName === "fetch" ? "json" : "";
+			responseType = options.responseType = options.requestMode === "fetch" ? "json" : "";
+		}
+		else if (responseType.trim().length === 0 && options.requestMode === "fetch") {
+			responseType = "text";
 		}
 
 		// 发送请求

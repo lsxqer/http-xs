@@ -19,7 +19,7 @@ export default function dispatchRequest(config: RequestInterface): <T = any, R =
     return nodeRequest;
   }
   else if (
-    config.requestName === "xhr" ||
+    config.requestMode === "xhr" ||
     typeof globalThis.fetch === "undefined" ||
     (typeof config.cancel !== "undefined" && typeof AbortController === "undefined") ||
     typeof config.onUploadProgress === "function" ||
@@ -27,10 +27,10 @@ export default function dispatchRequest(config: RequestInterface): <T = any, R =
     typeof config.timeout === "number" ||
     typeof config.auth === "object"
   ) {
-    config.requestName = "xhr";
+    config.requestMode = "xhr";
     return xhrRequest;
   }
 
-  config.requestName = "fetch";
+  config.requestMode = "fetch";
   return fetchRequest;
 }

@@ -168,9 +168,9 @@ export interface RequestInterface {
   //  transformationResponse?: P
 
   /**
-   * requestName 在浏览器端选用发送本次请求的对象
+   * requestMode 在浏览器端选用发送本次请求的对象
    */
-  requestName?: "xhr" | "fetch"
+  requestMode?: "xhr" | "fetch"
 
   /**
    *  request - 自定义请求的函数。接受一个options。需要返回一个Response
@@ -190,8 +190,8 @@ export interface RequestInterface {
   redirect?: RequestRedirect;
   referrer?: string;
   referrerPolicy?: ReferrerPolicy;
-  signal?: AbortController
-
+  signal?: AbortController;
+  
   // node
   /**
    * request 函数的配置项

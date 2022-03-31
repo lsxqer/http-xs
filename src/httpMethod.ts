@@ -1,15 +1,16 @@
-import { execuor } from "./exectuce";
+import { execute } from "./execute";
 
-export const Get = execuor("get");
+export const Get = execute("get");
 
-export const Post = execuor("post");
+export const Post = execute("post");
 
-export const Delete = execuor("delete");
+export const Delete = execute("delete");
 
-export const Put = execuor("put");
+export const Put = execute("put");
 
-export const Patch = execuor("patch");
+export const Patch = execute("patch");
 
-export const Options = execuor("options");
+export const Options = execute("options");
 
-export const Head = execuor("head"); 
+export const Head = execute("head");
+

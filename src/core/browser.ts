@@ -1,15 +1,14 @@
 import { ResponseStruct, RequestInterface, XsHeaderImpl } from "../typedef";
-import { createResolve } from "./succ";
-import { XsError } from "./error";
+import { XsError, createResolve } from "./complete";
 import { promiseReject, promiseResolve } from "../utils";
-import { XsHeaders } from "../xsHeaders";
-import { XsCancel } from "../xsCancel";
-import { checkFetchStatus } from "./check";
+import XsHeaders from "../header";
+import XsCancel from "../cancel";
+import { validateFetchStatus } from "./validateCode";
 
 
 function parserRawHeader(xhr: XMLHttpRequest) {
   let head;
-  let h = xhr.getAllResponseHeaders().trim();
+  let h = (xhr.getAllResponseHeaders() ?? "").trim();
 
   if (h.length > 0) {
     head = h.split(/\r\n/).reduce((init, line) => {
@@ -19,7 +18,7 @@ function parserRawHeader(xhr: XMLHttpRequest) {
     }, {});
   }
 
-  return XsHeaders.from(head);
+  return new XsHeaders(head);
 }
 
 
@@ -66,7 +65,7 @@ export function xhrRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfac
     };
 
     xhr.ontimeout = function onTimeout() {
-      reject(new XsError(xhr.status, `Http-xs: Network Timeout of ${  xhr.timeout  }ms`, xhr.timeout, opts, parserRawHeader(xhr), "timeout"));
+      reject(new XsError(xhr.status, `Http-xs: Network Timeout of ${xhr.timeout}ms`, xhr.timeout, opts, parserRawHeader(xhr), "timeout"));
       xhr = null;
     };
 
@@ -83,7 +82,7 @@ export function xhrRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfac
         return;
       }
       createResolve(
-        checkFetchStatus(this.status, resolve, reject),
+        validateFetchStatus(this.status, resolve, reject),
         opts,
         this.response,
         parserRawHeader(this),
@@ -161,7 +160,7 @@ export async function fetchRequest<T = any, R = ResponseStruct<T>>(opts: Request
     body.headers.forEach((val, key) => xsHeader.set(key, val));
 
     return createResolve(
-      checkFetchStatus(body.status, promiseResolve, promiseReject),
+      validateFetchStatus(body.status, promiseResolve, promiseReject),
       opts,
       response,
       xsHeader,
@@ -170,7 +169,7 @@ export async function fetchRequest<T = any, R = ResponseStruct<T>>(opts: Request
       body.type
     );
   } catch (exx) {
-    let header = XsHeaders.from();
+    let header = new XsHeaders();
 
     // fetch 取消请求时的错误对象 —> DOMException
     if (exx instanceof DOMException) {

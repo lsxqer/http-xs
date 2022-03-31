@@ -1,7 +1,7 @@
 import { isNode } from "../utils";
 import { RequestInterface, XsHeaderImpl } from "../typedef";
 import { getType, isEmpty, isObject } from "../utils";
-import { defaultContentType } from "../xsHeaders";
+import { defaultContentType } from "../header";
 
 
 export function transfromRequestPayload(opts: RequestInterface) {

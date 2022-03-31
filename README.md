@@ -90,25 +90,14 @@ export interface RequestInterface {
    */
   withCredentials?: boolean
   /**
-   * transformationRequest - 请求转换处理函数
-   *  - transformationRequest
-   *  - transformationRequest[]
+   * 请求中间函数
    */
-  transformationRequest?: TransformationRequest | TransformationRequest[]
+  use?: UseMidware[]
   /**
-   * TransformationResponse - 用户响应数据的转换属性
-   *  - TransformationResponse
-   *  - TransformationResponse [ ]
+   * requestMode 在浏览器端选用发送本次请求的对象
    */
-  transformationResponse?: TransformationResponse | TransformationResponse[]
-  /**
-   * type 在浏览器端选用发送本次请求的对象
-   */
-  type?: "xhr" | "fetch"
-  /**
-   *  request - 自定义请求的函数。接受一个options。需要返回一个Response
-   */
-  request?: BuildRequest
+  requestMode?: "xhr" | "fetch"
+ 
   // fetch
   /**
    * RequestInit 对象的配置

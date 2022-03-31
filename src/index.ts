@@ -1,7 +1,7 @@
-import HttpXs, { createInstance } from "./constructor";
-import { toCamelCase, XsHeaders, defaultContentType } from "./xsHeaders";
+import createInstance from "./constructor";
+import { toCamelCase, XsHeaders, defaultContentType } from "./header";
 import { schedulerOnSingleRequest } from "./core/request";
-import { Singal, XsCancel } from "./xsCancel";
+import XsCancel from "./cancel";
 import { Get, Post, Options, Put, Delete, Patch, Head } from "./httpMethod";
 import { applyRequest, defineInterface, RecordInterface, MethodStore, RecordMethod } from "./define";
 import { HttpMethod } from "./typedef";
@@ -10,7 +10,6 @@ import { promiseResolve, promiseReject } from "./utils";
 export type { RecordInterface, MethodStore, RecordMethod };
 
 type Xs = {
-  HttpXs: typeof HttpXs;
   Get: HttpMethod;
   get: HttpMethod;
   Delete: HttpMethod;
@@ -29,8 +28,7 @@ type Xs = {
   request: typeof schedulerOnSingleRequest;
   toCamelCase: typeof toCamelCase;
   XsHeaders: typeof XsHeaders;
-  header: typeof defaultContentType;
-  Singal: typeof Singal;
+  defaultContentType: typeof defaultContentType;
   XsCancel: typeof XsCancel;
   applyRequest: typeof applyRequest;
   defineInterface: typeof defineInterface;
@@ -39,7 +37,6 @@ type Xs = {
 }
 
 const xs: Xs = {
-  HttpXs: HttpXs,
   createInstance,
   Get: Get,
   get: Get,
@@ -64,9 +61,9 @@ const xs: Xs = {
 
   request: schedulerOnSingleRequest,
 
-  toCamelCase, XsHeaders, header: defaultContentType,
+  toCamelCase, XsHeaders, defaultContentType: defaultContentType,
 
-  Singal, XsCancel,
+  XsCancel,
 
   applyRequest, defineInterface,
 
@@ -77,7 +74,6 @@ const xs: Xs = {
 
 export {
   xs,
-  HttpXs,
   createInstance,
   Get,
   Get as get,
@@ -102,9 +98,9 @@ export {
 
   schedulerOnSingleRequest as request,
 
-  toCamelCase, XsHeaders, defaultContentType as header,
+  toCamelCase, XsHeaders, defaultContentType,
 
-  Singal, XsCancel,
+  XsCancel,
 
   applyRequest, defineInterface,
 
@@ -112,4 +108,4 @@ export {
   promiseReject
 };
 
-export default HttpXs;
+export default xs;

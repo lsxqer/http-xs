@@ -1,19 +1,22 @@
 import { schedulerOnSingleRequest } from "./core/request";
-import { mergeConfig } from "./exectuce";
-import { HttpMethod, UseMidware, Method, RequestInterface } from "./typedef";
-
+import { resolveConfig } from "./execute";
+import XsHeaders, { defaultContentType } from "./header";
+import { UseMidware, Method, RequestInterface, XsHeaderImpl } from "./typedef";
+import { isObject, promiseReject, promiseResolve } from "./utils";
+import XsCancel from "./cancel";
+import { applyRequest, defineInterface } from "src";
 
 const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ] as Method[];
 
 
-type XsInstance = {
-  [p in Method]: HttpMethod;
-} & {
-  request: typeof schedulerOnSingleRequest
-};
+interface DefaultConfig {
+  use?: UseMidware[];
+  headers?: RequestInterface["headers"];
 
-interface DefaultConfig extends RequestInterface {
-  use?: UseMidware[]
+  timeout?: number;
+  baseUrl?: string;
+  responseType?: RequestInterface["responseType"];
+  requestMode?: RequestInterface["requestMode"];
 }
 
 function pushMidHandler(...args: UseMidware[]);
@@ -25,11 +28,49 @@ function pushMidHandler(this: { defaultConfig: DefaultConfig }, ...args) {
 }
 
 
-// ? 再议
-function createInstance(defaultInstaceConfig?: DefaultConfig): XsInstance {
+function mergeDefaultInceConfig(defaultConfig: DefaultConfig, customReq: RequestInterface) {
 
-  defaultInstaceConfig ??= {};
-  defaultInstaceConfig.use = defaultInstaceConfig?.use ?? [];
+  let { headers, baseUrl = "" } = defaultConfig;
+
+  // header
+  customReq.headers = new XsHeaders(customReq.headers);
+
+  (headers as XsHeaderImpl).forEach((val, key) => {
+    (customReq.headers as XsHeaderImpl).set(key, val);
+  });
+
+  // url
+  customReq.url = baseUrl + customReq.url.replace(/^\?*/, "/");
+
+  // use
+  customReq.use ??= [];
+  customReq.use = defaultConfig.use.concat(customReq.use);
+
+  return customReq;
+}
+
+function resolveDefaultConfig(defaultConfig?: DefaultConfig) {
+
+  if (!isObject(defaultConfig)) {
+    defaultConfig = {};
+  }
+
+  defaultConfig.use ??= [];
+
+  defaultConfig.headers = new XsHeaders(defaultConfig.headers);
+
+  !(defaultConfig.headers.has(defaultContentType.contentType)) && defaultConfig.headers.set(defaultContentType.contentType, defaultContentType.search);
+
+  defaultConfig.baseUrl ??= "";
+  defaultConfig.baseUrl = defaultConfig.baseUrl.replace(/\?$*/, "");
+
+  return Object.freeze(defaultConfig);
+}
+
+
+function createInstance(defaultInstaceConfig?: DefaultConfig) {
+
+  defaultInstaceConfig = resolveDefaultConfig(defaultInstaceConfig);
 
   const proto = Object.create(null), instce = Object.create(null);
 
@@ -41,73 +82,22 @@ function createInstance(defaultInstaceConfig?: DefaultConfig): XsInstance {
 
   methodNamed.forEach(method => {
     instce[method] = async function fetchRequest(this: { defaultConfig: DefaultConfig }, url, opts) {
-
-      // let defaultUse = opts.use;
-      // opts.use = null;
-      opts = mergeConfig(this.defaultConfig, mergeConfig(url, opts), method);
-      opts.use = opts.use.concat(this.defaultConfig.use);
-
-      // copy opts -> newOpts
-
-      return schedulerOnSingleRequest(opts);
+      // ! 会覆盖
+      // ? merge baseConfig
+      return schedulerOnSingleRequest(mergeDefaultInceConfig(instce.defaultConfig, resolveConfig(url, opts)));
     };
   });
+
+  instce.XsCancel = XsCancel;
+  instce.XsHeader = XsHeaders;
+  instce.defaultContentType = { ...defaultContentType };
+  instce.applyRequest = applyRequest;
+  instce.defineInterface = defineInterface;
+  instce.promiseResolve = promiseResolve;
+  instce.promiseReject = promiseReject;
 
   return instce;
 }
 
-
-type HttpXsImpl = {
-
-  // [p in Method]: HttpMethod;
-};
-
-// 添加构造函数选择
-class HttpXs implements HttpXsImpl {
-
-  // midware: UseMidware[];
-
-  // post: HttpMethod;
-  // get: HttpMethod;
-  // delete: HttpMethod;
-  // put: HttpMethod;
-  // patch: HttpMethod;
-  // options: HttpMethod;
-  // head: HttpMethod;
-
-  // constructor() {
-  //   this.midware = [];
-  //   methodNamed.forEach(method => {
-  //     this[method] = execuor(method, this.midware);
-  //   });
-  // }
-
-  // use(...args: UseMidware[]);
-  // use(midware: UseMidware[]);
-  // use(...midwares) {
-
-  //   let fns = this.midware;
-
-  //   function push(arr: any[]) {
-  //     arr.forEach(fn => {
-  //       if (typeof fn === "function") {
-  //         fns.push(fn);
-  //       }
-  //       else if (Array.isArray(fn)) {
-  //         push(fn);
-  //       }
-  //     });
-  //   }
-
-  //   push(midwares);
-  //   return this;
-  // }
-
-}
-
-
-export {
-  HttpXs, createInstance
-};
-
-export default HttpXs;
+export { createInstance };
+export default createInstance;
