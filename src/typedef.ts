@@ -6,6 +6,7 @@ import { ReadStream } from "fs";
 export type UseMidware = (req: RequestInterface, next: () => Promise<ResponseStruct>) => Promise<ResponseStruct>;
 
 export type Method = "post" | "get" | "put" | "delete" | "head" | "options" | "patch"
+export type PromiseFunction<T> = (...args: any) => Promise<T>;
 
 
 export interface ResponseStruct<T = any, R = RequestInterface> {

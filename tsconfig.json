@@ -35,7 +35,7 @@
   },
   "include": [
     "./src/*"
-  ],
+, "src/core/httpMethod.ts"  ],
   "exclude": [
     "dev/**/*",
     "node_modules/**/*"

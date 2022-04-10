@@ -50,7 +50,7 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
       init = Array.from(Object.entries(init));
     }
     if (Array.isArray(init)) {
-      (init as [string, string][]).forEach(([ key, val ]) => initialize.push([ toCamelCase(key), val ]));
+      (init as [string, string][]).forEach(function each([ key, val ]) { initialize.push([ toCamelCase(key), val ]) });
     }
 
     super(initialize);
@@ -66,7 +66,7 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
 
   raw(): Record<string, string> {
     let ans = {};
-    super.forEach((val, key) => {
+    super.forEach(function each(val, key) {
       ans[key] = val;
     });
     return ans;
@@ -96,7 +96,6 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
   forEach(callbackfn: (value: string, key: string, parent: URLSearchParams) => void, thisArg?: any): void {
     return super.forEach(callbackfn, thisArg);
   }
-
 }
 
 export default XsHeaders;

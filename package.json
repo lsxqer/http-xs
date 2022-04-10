@@ -1,6 +1,6 @@
 {
   "name": "http-xs",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
   "browser": "./lib/iife/index.js",
@@ -9,7 +9,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "rollup --config ./rollup.config.js --watch",
-    "build": "node ./build.js",
+    "build:b": "node ./build.js",
+    "build": "node ./clear.js && rollup --config ./rollup.config.js ",
     "tsc": "tsc -p ./tsconfig.json",
     "lint": "eslint ./src --fix --ext .ts",
     "test": "jest",

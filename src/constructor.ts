@@ -1,10 +1,11 @@
 import { schedulerOnSingleRequest } from "./core/request";
-import { resolveConfig } from "./execute";
+import mergeConfig from "./core/merge";
 import XsHeaders, { defaultContentType } from "./header";
 import { UseMidware, Method, RequestInterface, XsHeaderImpl } from "./typedef";
-import { isObject, promiseReject, promiseResolve } from "./utils";
+import { isObject, promiseReject, copyTo, promiseResolve, forEach } from "./utils";
 import XsCancel from "./cancel";
-import { deriveInterfaceWrapper, defineInterface } from "src";
+import { deriveInterfaceWrapper, defineInterface, RecordInterface, repeatExecution } from "src";
+import { concurrent } from "./core/concurrent";
 
 const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ] as Method[];
 
@@ -35,7 +36,7 @@ function mergeDefaultInceConfig(defaultConfig: DefaultConfig, customReq: Request
   // header
   customReq.headers = new XsHeaders(customReq.headers);
 
-  (headers as XsHeaderImpl).forEach((val, key) => {
+  (headers as XsHeaderImpl).forEach(function each(val, key) {
     (customReq.headers as XsHeaderImpl).set(key, val);
   });
 
@@ -65,7 +66,7 @@ function resolveDefaultConfig(defaultConfig?: DefaultConfig) {
   !(defaultConfig.headers.has(defaultContentType.contentType)) && defaultConfig.headers.set(defaultContentType.contentType, defaultContentType.search);
 
   defaultConfig.baseUrl ??= "";
-  defaultConfig.baseUrl = defaultConfig.baseUrl.replace(/\?$*/, "");
+  defaultConfig.baseUrl = defaultConfig.baseUrl.replace(/[?/]*$/, "");
 
   return Object.freeze(defaultConfig);
 }
@@ -83,11 +84,11 @@ function createInstance(defaultInstaceConfig?: DefaultConfig) {
     request: schedulerOnSingleRequest
   }));
 
-  methodNamed.forEach(method => {
-    instce[method] = async function fetchRequest(this: { defaultConfig: DefaultConfig }, url, opts) {
+  methodNamed.forEach(function each(method) {
+    instce[method] = async function HttpMethod(this: { defaultConfig: DefaultConfig }, url, opts) {
       // ! 会覆盖
       // ? merge baseConfig
-      return schedulerOnSingleRequest(mergeDefaultInceConfig(instce.defaultConfig, resolveConfig(url, opts)));
+      return schedulerOnSingleRequest(mergeDefaultInceConfig(instce.defaultConfig, mergeConfig(url, opts)));
     };
   });
 
@@ -95,9 +96,21 @@ function createInstance(defaultInstaceConfig?: DefaultConfig) {
   instce.XsHeader = XsHeaders;
   instce.defaultContentType = { ...defaultContentType };
   instce.deriveInterfaceWrapper = deriveInterfaceWrapper;
-  instce.defineInterface = defineInterface;
   instce.promiseResolve = promiseResolve;
   instce.promiseReject = promiseReject;
+  instce.copyTo = copyTo;
+  instce.forEach = forEach;
+  instce.repeatExecution = repeatExecution;
+  instce.concurrent = concurrent;
+
+  instce.defineInterface = function (apiDefine: RecordInterface) {
+    return defineInterface(instce, apiDefine);
+  };
+
+  instce.setProfix = function (profix: string) {
+    defaultInstaceConfig.baseUrl += profix.replace(/^\/*/, "/");
+  };
+
 
   return instce;
 }

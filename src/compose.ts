@@ -2,7 +2,7 @@ import { RequestInterface, UseMidware } from "./typedef";
 import { promiseReject, promiseResolve } from "./utils";
 
 
-export function koaCompose(fns:UseMidware[] = []) {
+export function compose(fns:UseMidware[] = []) {
 
   return function execute(req:RequestInterface, finished:any) {
 

@@ -44,7 +44,7 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
   }
 
   requestOptions.headers = {};
-  (headers as XsHeaderImpl).forEach((val, key) => {
+  (headers as XsHeaderImpl).forEach(function each(val, key) {
     requestOptions.headers[key] = val;
   });
 
@@ -56,8 +56,8 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
     request = getRequest("https");
   }
 
-  return new Promise((resolve, reject) => {
-    const req: ClientRequest = request(requestOptions, (res: IncomingMessage) => {
+  return new Promise(function executor(resolve, reject) {
+    const req: ClientRequest = request(requestOptions, function onRequest(res: IncomingMessage) {
       if (req.destroyed) { return }
 
       let chunks = [];
@@ -114,7 +114,7 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
     }
 
     if (typeof opts.cancel !== "undefined") {
-      let cancel = () => {
+      let cancel = function () {
         opts.cancel.signal.removeEventListener("abort", cancel);
         if (opts.cancel.signal.aborted) { return }
         req.destroy();
@@ -125,7 +125,7 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
       opts.cancel.signal.addEventListener("abort", cancel, { once: true });
     }
 
-    req.on("abort", () => reject(new XsError(0, "Http-xs: Client Abort", null, opts, errorHeader, "abort")));
+    req.on("abort", function onAbort() { reject(new XsError(0, "Http-xs: Client Abort", null, opts, errorHeader, "abort")) });
 
     if (isStream(body)) {
       (body as Stream).on("error", function onError(exx) {

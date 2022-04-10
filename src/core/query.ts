@@ -24,7 +24,7 @@ export function appendQueryToUrl(originalUrl = "", sourceQuery) {
       // ?todo: 注意val是数组的情况
       let queryQue = [];
 
-      forEach(sourceQuery, (key, val) => {
+      forEach(sourceQuery, function each(key, val) {
         if (!isUndef(val)) {
           queryQue.push(`${encode(key)}=${encode(val)}`);
         }

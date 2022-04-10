@@ -2,16 +2,20 @@ import createInstance from "./constructor";
 import { toCamelCase, XsHeaders, defaultContentType } from "./header";
 import { schedulerOnSingleRequest } from "./core/request";
 import XsCancel from "./cancel";
-import { Get, Post, Options, Put, Delete, Patch, Head } from "./httpMethod";
+import { Get, Post, Options, Put, Delete, Patch, Head } from "./core/httpMethod";
 import { deriveInterfaceWrapper, defineInterface, RecordInterface, MethodStore, RecordMethod } from "./define";
 import { HttpMethod } from "./typedef";
 import { promiseResolve, promiseReject } from "./utils";
+import { concurrent } from "./core/concurrent";
+import { repeatExecution } from "./core/repeatExecution";
 
 export type { RecordInterface, MethodStore, RecordMethod };
 
 type Xs = {
   Get: HttpMethod;
   get: HttpMethod;
+  concurrent: typeof concurrent;
+  repeatExecution: typeof repeatExecution;
   Delete: HttpMethod;
   createInstance: typeof createInstance,
   delete: HttpMethod;
@@ -37,6 +41,7 @@ type Xs = {
 }
 
 const xs: Xs = {
+  repeatExecution, concurrent,
   createInstance,
   Get: Get,
   get: Get,
@@ -74,6 +79,7 @@ const xs: Xs = {
 
 export {
   xs,
+  repeatExecution, concurrent,
   createInstance,
   Get,
   Get as get,

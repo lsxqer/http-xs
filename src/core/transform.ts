@@ -1,6 +1,6 @@
 import { isNode } from "../utils";
 import { RequestInterface, XsHeaderImpl } from "../typedef";
-import { getType, isEmpty, isObject } from "../utils";
+import { valueOf, isEmpty, isObject } from "../utils";
 import { defaultContentType } from "../header";
 
 
@@ -15,11 +15,14 @@ export function transfromRequestPayload(opts: RequestInterface) {
   let header = opts.headers as XsHeaderImpl;
   let contentType = header.get(defaultContentType.contentType), replaceContentType = contentType;
 
-  switch (getType(body).toLowerCase()) {
+  switch (valueOf(body).toLowerCase()) {
     case "array":
     case "urlsearchparams":
     case "object": {
-      if (replaceContentType?.includes("application/json") || isObject(body) || Array.isArray(body)) {
+      if (
+        replaceContentType?.includes("application/json") && 
+        (isObject(body) || Array.isArray(body))
+        ) {
         body = JSON.stringify(body);
       }
       else {
@@ -27,6 +30,7 @@ export function transfromRequestPayload(opts: RequestInterface) {
       }
 
       if (isNode) {
+        // node环境转换为buffer传输
         body = Buffer.from(body, "utf-8");
       }
       replaceContentType = defaultContentType.search;
@@ -50,6 +54,7 @@ export function transfromRequestPayload(opts: RequestInterface) {
   if (isEmpty(contentType) && !isEmpty(replaceContentType)) {
     header.set(defaultContentType.contentType, replaceContentType);
   }
+
   opts.headers = header;
 
   return body;
@@ -57,7 +62,6 @@ export function transfromRequestPayload(opts: RequestInterface) {
 
 export function transfromResponse(responseStruct: any, responseType: string) {
   let response = responseStruct.response;
-
 
   switch (responseType.toLowerCase()) {
     case "blob":

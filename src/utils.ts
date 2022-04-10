@@ -4,10 +4,13 @@ export const promiseResolve = Promise.resolve.bind(Promise);
 export const promiseReject = Promise.reject.bind(Promise);
 
 
-const toString = Object.prototype.toString;
+const toTypeString = Object.prototype.toString;
 
-export const getType = (tar: unknown): string => toString.call(tar).slice(8, -1);
-const hasInType = <T>(target: unknown, type: string): target is T => type === getType(target);
+export function valueOf(tar: unknown): string {
+  return toTypeString.call(tar).slice(8, -1);
+}
+
+const hasInType = <T>(target: unknown, type: string): target is T => type === valueOf(target);
 
 export function isObject<T = Record<string, unknown>>(tar: unknown): tar is T {
   return hasInType<T>(tar, "Object");
@@ -25,7 +28,7 @@ export function isArray<R = any, T extends Array<R> = Array<R>>(tar: unknown): t
   return Array.isArray(tar);
 }
 
-export const isNode = typeof process !== "undefined" && getType(process) === "process";
+export const isNode = typeof process !== "undefined" && valueOf(process) === "process";
 
 export function isAbsoluteURL(url: string) {
   return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
@@ -92,4 +95,11 @@ export function forEach<T = any>(target: any, each: (key: string, val: T) => voi
   for (let [ key, val ] of target as { [Symbol.iterator]() }) {
     each(key, val);
   }
+}
+
+
+export function copyTo(source, target) {
+  forEach(source, function each(key, val) {
+    target[key] = val;
+  });
 }

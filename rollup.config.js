@@ -2,7 +2,7 @@ import ts2 from "rollup-plugin-typescript2";
 import { getBabelOutputPlugin, babel } from "@rollup/plugin-babel";
 import resolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
-import { eslint } from "rollup-plugin-eslint";
+import eslint from "rollup-plugin-eslint";
 import { uglify } from "rollup-plugin-uglify";
 import nodePolyfills from "rollup-plugin-node-polyfills";
 import pkg from "./package.json";

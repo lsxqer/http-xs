@@ -1,5 +1,5 @@
 const esbuild = require("esbuild");
-const { spawn, exec } = require("child_process");
+const { exec } = require("child_process");
 
 const format = ["cjs", "iife", "esm"];
 // "build": "node ./clear.js && rollup --config ./rollup.config.js ",
@@ -24,5 +24,4 @@ exec("node ./clear.js", (err) => {
       // platform:"node"
     });
   });
-
 });

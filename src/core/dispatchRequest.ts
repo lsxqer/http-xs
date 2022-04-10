@@ -11,6 +11,7 @@ import { nodeRequest } from "./http";
  */
 export default function dispatchRequest(config: RequestInterface): <T = any, R = ResponseStruct<T>>(opts: RequestInterface) => Promise<R> {
 
+  // custom request
   // if (typeof config.request === "function") {
   //   return config.request;
   // }

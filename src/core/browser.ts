@@ -11,7 +11,7 @@ function parserRawHeader(xhr: XMLHttpRequest) {
   let h = (xhr.getAllResponseHeaders() ?? "").trim();
 
   if (h.length > 0) {
-    head = h.split(/\r\n/).reduce((init, line) => {
+    head = h.split(/\r\n/).reduce(function each(init, line) {
       let [ key, val ] = line.split(":");
       init[key] = val.trim();
       return init;
@@ -32,7 +32,7 @@ export function xhrRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfac
 
   xhr.open(opts.method, opts.url, true, opts?.auth?.username, opts?.auth?.password);
 
-  (opts.headers as XsHeaderImpl).forEach((val, key) => xhr.setRequestHeader(key, val));
+  (opts.headers as XsHeaderImpl).forEach(function each(val, key) { xhr.setRequestHeader(key, val) });
 
   if (typeof opts.timeout === "number" && !Number.isNaN(opts.timeout)) {
     xhr.timeout = opts.timeout;
@@ -47,7 +47,7 @@ export function xhrRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfac
     xhr.upload.onprogress = opts.onUploadProgress;
   }
   if (typeof opts.cancel !== "undefined") {
-    let abort = () => {
+    let abort = function () {
       opts.cancel.signal.removeEventListener("abort", abort);
       if (opts.cancel.signal.aborted) { return }
       xhr.abort();
@@ -58,7 +58,7 @@ export function xhrRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfac
     opts.cancel.signal.addEventListener("abort", abort, { once: true });
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise(function executor(resolve, reject) {
     xhr.onabort = function onAbort() {
       reject(new XsError(xhr.status, "Http-xs: Client Aborted", xhr.timeout, opts, parserRawHeader(xhr), "abort"));
       xhr = null;
@@ -108,7 +108,7 @@ export async function fetchRequest<T = any, R = ResponseStruct<T>>(opts: Request
     if (opts.cancel instanceof XsCancel) {
 
       cancelController = new AbortController();
-      let abort = () => {
+      let abort = function () {
         opts.cancel.signal.removeEventListener("abort", abort);
         if (opts.cancel.signal.aborted) {
           return;
