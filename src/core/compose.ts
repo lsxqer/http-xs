@@ -1,5 +1,5 @@
-import { RequestInterface, UseMidware } from "./typedef";
-import { promiseReject, promiseResolve } from "./utils";
+import { RequestInterface, UseMidware } from "../typedef";
+import { promiseReject, promiseResolve } from "../utils";
 
 
 export function compose(fns:UseMidware[] = []) {
@@ -14,9 +14,11 @@ export function compose(fns:UseMidware[] = []) {
       if (i <= index ) {
         return promiseReject(new Error("next() called"));
       }
+
       if (fns.length === i) {
         fn = finished;
       }
+      
       if (typeof fn !== "function") {
         return promiseResolve();
       }

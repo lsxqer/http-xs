@@ -1,12 +1,15 @@
 import Signal from "./signal";
-import { getEvent } from "./event";
+import { getAdaptEvent } from "./event";
 
 export default class XsCancel {
 
   readonly signal = new Signal();
 
   abort() {
-    this.signal.dispatchEvent(getEvent());
+    if (this.signal.aborted) {
+      return;
+    }
+    this.signal.dispatchEvent(getAdaptEvent());
     this.signal.aborted = true;
   }
 

@@ -3,7 +3,7 @@
     "target": "es2015",
     "module": "ESNext",
     "declaration": true,
-    "noEmit": false,
+    "noEmit":true,
     "isolatedModules": true,
     "declarationDir": "./@types",
     "declarationMap": false,
@@ -31,11 +31,13 @@
       "node",
       "jest"
     ],
-    "typeRoots": ["./index.d.ts"]
+    "typeRoots": [
+      "./index.d.ts"
+    ]
   },
   "include": [
     "./src/*"
-, "src/core/httpMethod.ts"  ],
+  ],
   "exclude": [
     "dev/**/*",
     "node_modules/**/*"

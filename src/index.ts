@@ -1,86 +1,24 @@
 import createInstance from "./constructor";
-import { toCamelCase, XsHeaders, defaultContentType } from "./header";
-import { schedulerOnSingleRequest } from "./core/request";
-import XsCancel from "./cancel";
+import HttpXsDefaultProto from "./proto";
 import { Get, Post, Options, Put, Delete, Patch, Head } from "./core/httpMethod";
-import { deriveInterfaceWrapper, defineInterface, RecordInterface, MethodStore, RecordMethod } from "./define";
-import { HttpMethod } from "./typedef";
+import { toCamelCase, XsHeaders, contentType } from "./parts/headers";
+import { exectionOfSingleRequest } from "./core/request";
+import XsCancel from "./cancel";
+import { deriveInterfaceWrapper, defineInterface } from "./parts/define";
 import { promiseResolve, promiseReject } from "./utils";
-import { concurrent } from "./core/concurrent";
-import { repeatExecution } from "./core/repeatExecution";
+import { asyncIterable } from "./parts/asyncIterator";
+import retry from "./parts/retry";
 
-export type { RecordInterface, MethodStore, RecordMethod };
-
-type Xs = {
-  Get: HttpMethod;
-  get: HttpMethod;
-  concurrent: typeof concurrent;
-  repeatExecution: typeof repeatExecution;
-  Delete: HttpMethod;
-  createInstance: typeof createInstance,
-  delete: HttpMethod;
-  Post: HttpMethod;
-  post: HttpMethod;
-  Put: HttpMethod;
-  put: HttpMethod;
-  Head: HttpMethod;
-  head: HttpMethod;
-  Patch: HttpMethod;
-  patch: HttpMethod;
-  Options: HttpMethod;
-  options: HttpMethod;
-  request: typeof schedulerOnSingleRequest;
-  toCamelCase: typeof toCamelCase;
-  XsHeaders: typeof XsHeaders;
-  defaultContentType: typeof defaultContentType;
-  XsCancel: typeof XsCancel;
-  deriveInterfaceWrapper: typeof deriveInterfaceWrapper;
-  defineInterface: typeof defineInterface;
-  promiseReject: typeof promiseReject;
-  promiseResolve: typeof promiseResolve;
-}
-
-const xs: Xs = {
-  repeatExecution, concurrent,
-  createInstance,
-  Get: Get,
-  get: Get,
-
-  Delete: Delete,
-  delete: Delete,
-
-  Post: Post,
-  post: Post,
-
-  Put: Put,
-  put: Put,
-
-  Head: Head,
-  head: Head,
-
-  Patch: Patch,
-  patch: Patch,
-
-  Options: Options,
-  options: Options,
-
-  request: schedulerOnSingleRequest,
-
-  toCamelCase, XsHeaders, defaultContentType: defaultContentType,
-
-  XsCancel,
-
-  deriveInterfaceWrapper, defineInterface,
-
-  promiseResolve: promiseResolve,
-  promiseReject: promiseReject
+const xs = {
+  ...HttpXsDefaultProto,
+  create: createInstance
 };
 
-
 export {
+  HttpXsDefaultProto,
   xs,
-  repeatExecution, concurrent,
-  createInstance,
+  retry, asyncIterable,
+  createInstance as create,
   Get,
   Get as get,
 
@@ -97,14 +35,14 @@ export {
   Head as head,
 
   Patch,
-  Patch as pathch,
+  Patch as patch,
 
   Options,
   Options as options,
 
-  schedulerOnSingleRequest as request,
+  exectionOfSingleRequest as request,
 
-  toCamelCase, XsHeaders, defaultContentType,
+  toCamelCase, XsHeaders, contentType,
 
   XsCancel,
 
@@ -115,3 +53,4 @@ export {
 };
 
 export default xs;
+

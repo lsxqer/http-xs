@@ -1,20 +1,31 @@
-import { getEventTarget } from "./eventTarget";
-import { XsEventTargetImpl } from "../typedef";
-import { EventImpl } from "./event";
+import { getAdapEventTarget } from "./eventTarget";
+import { IXsEventTarget } from "../typedef";
+import { IEvent } from "./event";
 
 
-export default class Signal extends (getEventTarget() as any) implements XsEventTargetImpl {
+// function Signle (this:ThisType<Object>) {
+//   getAdapEventTarget().call(this);
+//   (this as any).aborted = false;
+//   (this as any).onabort = null;
+// }
 
+
+// Signle.prototype.addEventListener = function (type: keyof AbortSignalEventMap, listener: (...args)=>void) {
+//   this.addEventListener(type, listener);
+// }
+
+
+export default class Signal extends (getAdapEventTarget() as any) implements IXsEventTarget {
   
   aborted = false;
   
-  onabort: ((this: AbortSignal, ev: EventImpl) => any) | null;
+  onabort: ((this: AbortSignal, ev: IEvent) => any) | null;
 
   addEventListener(type: keyof AbortSignalEventMap, listener: (...args)=>void) {
     super.addEventListener(type, listener);
   }
 
-  dispatchEvent(event: EventImpl) {
+  dispatchEvent(event: IEvent) {
     super.dispatchEvent(event);
     this.onabort?.call(this as any, event);
   }
@@ -23,5 +34,9 @@ export default class Signal extends (getEventTarget() as any) implements XsEvent
     super.removeListener(type, listener);
   }
 
+  subscribe(listener:(...args) => void) {
+    super.addEventListener("abort", listener);
+  }
+  
 }
 

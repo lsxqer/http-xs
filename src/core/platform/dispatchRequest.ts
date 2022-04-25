@@ -1,7 +1,7 @@
 
-import { RequestInterface, ResponseStruct } from "../typedef";
+import { RequestInterface, ResponseStruct } from "../../typedef";
 import { fetchRequest, xhrRequest } from "./browser";
-import { isNode } from "../utils";
+import { isNode } from "../../utils";
 import { nodeRequest } from "./http";
 
 /**
@@ -9,7 +9,7 @@ import { nodeRequest } from "./http";
  * @param config  请求配置
  * @returns request 一个用于执行请求的函数
  */
-export default function dispatchRequest(config: RequestInterface): <T = any, R = ResponseStruct<T>>(opts: RequestInterface) => Promise<R> {
+export default function dispatchRequest(config: RequestInterface): <T = any>(opts: RequestInterface) => Promise<ResponseStruct<T>> {
 
   // custom request
   // if (typeof config.request === "function") {

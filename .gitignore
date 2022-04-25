@@ -3,8 +3,11 @@ lib/
 @types/
 types/
 coverage/
+out/
 
 
 *.exe
 *.log
 *.lock
+src/*.js
+.DS_Store

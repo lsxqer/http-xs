@@ -1,40 +1,35 @@
-import { HttpXs, XsCancel } from "./src";
-import axios from "axios";
+
+import * as Xs from "./src";
 
 
-const xsClient = new HttpXs();
+
+const {create,HttpXsDefaultProto,Get,contentType, XsHeaders} = Xs;
 
 
-const url = "http://localhost:4096";
+const instce = create({
+  baseUrl:"http://localhost:4096"
+});
 
-// xsClient.get<string>(url + "?name=abc")
-// .then(r => {
+
+// instce.get("/json")
+// .then(r =>{
 //   console.log(r);
 // });
 
+let m  = new Map<string,() => Promise<any>>();
 
-xsClient.use(
-  async (req, next) => {
-
-    let r = await next();
-
-    console.log(r);
-    return r;
-  }
-)
+m.set("key1", () => instce.get("/json"));
+m.set("key2", () => instce.get("/json"));
+m.set("key3", () => instce.get("/json"));
+m.set("key43", () => instce.get("/json"));
+m.set("key14", () => instce.get("/json"));
 
 
-// axios.post(url+ "?name=abc",{timeout:1000}).then(r => {
+
+// instce.asyncIterable(m).then(r => {
+//   console.log(m.get("key1"));
+// })
+
+// Get("http://localhost:4096/json").then(r => {
 //   console.log(r);
 // });
-
-const cancel = new XsCancel();
-
-
-xsClient.post(url, { body: JSON.stringify({ name: "大粑粑" }), requestMode:"xhr"})
-  .then(r => {
-    console.log(typeof r);
-  });
-
-cancel.abort();
-cancel.abort();

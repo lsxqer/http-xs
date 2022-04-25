@@ -1,10 +1,10 @@
-import XsHeaders from "../header";
-import { XsError, createResolve } from "./complete";
+import XsHeaders from "../../parts/headers";
+import { XsError, ResponseStruct } from "../complete";
 import { Stream } from "stream";
-import { ResponseStruct, ClientRequestArgs, IncomingMessage, ClientRequest, RequestInterface, XsHeaderImpl } from "../typedef";
-import { isStream } from "../utils";
-import { promiseReject } from "../utils";
-import { validateFetchStatus } from "./validateCode";
+import { ClientRequestArgs, IncomingMessage, ClientRequest, RequestInterface, XsHeaderImpl } from "../../typedef";
+import { isStream } from "../../utils";
+import { promiseReject } from "../../utils";
+import { validateFetchStatus } from "../complete";
 
 function getRequest(type: "http" | "https"): ClientRequest {
   if (type === "http") {
@@ -13,7 +13,7 @@ function getRequest(type: "http" | "https"): ClientRequest {
   return require("https").request;
 }
 
-export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterface): Promise<R> {
+export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseStruct<T>> {
 
   let body = opts.body;
   let headers = opts.headers;
@@ -27,7 +27,7 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
       requestOptions = require("url").urlToHttpOptions(new URL(opts.url));
     } catch (exx) {
       // handle parse url errx
-      return promiseReject(new XsError(0, `Http-xs: Parser Url Error ${exx.toString()}`, null, opts, new XsHeaders(), "error"));
+      return promiseReject(new XsError(0, `Http-xs: Parser Url Error ${exx.toString()}`,  opts, new XsHeaders(), "error"));
     }
   }
 
@@ -49,11 +49,11 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
   });
 
   let request;
-  if (/^http/.test(requestOptions.protocol)) {
-    request = getRequest("http");
+  if (/^https:?/.test(requestOptions.protocol)) {
+    request = getRequest("https");
   }
   else {
-    request = getRequest("https");
+    request = getRequest("http");
   }
 
   return new Promise(function executor(resolve, reject) {
@@ -67,14 +67,16 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
 
       res.on("error", function onError(err) {
         res.resume();
-        return reject(new XsError(0, `Http-xs: ${err.message} ${err.stack}`, null, opts, resHeader, "error"));
+        return reject(new XsError(0, `Http-xs: ${err.message} ${err.stack}`, opts, resHeader, "error"));
       });
 
       if (typeof opts.encoding !== "undefined") {
         res.setEncoding(opts.encoding);
       }
       if (opts.responseType === "stream") {
-        return createResolve(resolve, opts, stream, resHeader, res.statusCode, res.statusMessage);
+        return new ResponseStruct(
+          resolve as any, stream, res.statusCode, res.statusMessage, opts, null, resHeader
+        );
       }
 
       stream.on("data", function onData(ch) {
@@ -83,33 +85,27 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
 
       stream.on("error", function onError(exx) {
         if (req.destroyed) { return }
-        return reject(new XsError(0, `Http-xs: ${exx.message} ${exx.stack}`, null, opts, resHeader, "error"));
+        return reject(new XsError(0, `Http-xs: ${exx.message} ${exx.stack}`, opts, resHeader, "error"));
       });
 
       stream.on("end", function onStreameEnd() {
         let responseBuffer = Buffer.concat(chunks);
-        createResolve(
-          validateFetchStatus(res.statusCode, resolve, reject),
-          opts,
-          responseBuffer,
-          resHeader,
-          res.statusCode,
-          res.statusMessage
+        return new ResponseStruct(
+          validateFetchStatus(res.statusCode, resolve, reject), responseBuffer, res.statusCode, res.statusMessage, opts, null, resHeader
         );
       });
     });
 
-    let errorHeader = new XsHeaders();
 
     req.on("error", function onError(exx) {
       if (req.destroyed) { return }
-      return reject(new XsError(0, `Http-xs: Network Error\n${exx.message} ${exx.stack}`, null, opts, errorHeader, "error"));
+      return reject(new XsError(0, `Http-xs: Network Error:\n${exx.message}`, opts, undefined, "error"));
     });
 
     if (typeof opts.timeout === "number") {
       req.setTimeout(opts.timeout, function onTimeout() {
         req.destroy();
-        return reject(new XsError(0, `Http-xs: Network Timeout of ${opts.timeout}ms`, null, opts, errorHeader, "timeout"));
+        return reject(new XsError(0, `Http-xs: Network Timeout of ${opts.timeout}ms`, opts, undefined, "timeout"));
       });
     }
 
@@ -119,17 +115,17 @@ export function nodeRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfa
         if (opts.cancel.signal.aborted) { return }
         req.destroy();
         cancel = null;
-        return reject(new XsError(0, "Http-xs: Client Abort", null, opts, errorHeader, "abort"));
+        return reject(new XsError(0, "Http-xs: Client Abort", opts, undefined, "abort"));
       };
 
       opts.cancel.signal.addEventListener("abort", cancel, { once: true });
     }
 
-    req.on("abort", function onAbort() { reject(new XsError(0, "Http-xs: Client Abort", null, opts, errorHeader, "abort")) });
+    req.on("abort", function onAbort() { reject(new XsError(0, "Http-xs: Client Abort", opts, undefined, "abort")) });
 
     if (isStream(body)) {
       (body as Stream).on("error", function onError(exx) {
-        return reject(new XsError(0, `Http-xs: Request data error\n${exx.message} ${exx.stack}`, null, opts, errorHeader, "error"));
+        return reject(new XsError(0, `Http-xs: Request data error\n${exx.message} ${exx.stack}`, opts, undefined, "error"));
       }).pipe(req);
     }
     else {

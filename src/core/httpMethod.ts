@@ -1,11 +1,11 @@
 
-import { schedulerOnSingleRequest } from "./request";
+import { exectionOfSingleRequest } from "./request";
 import { HttpMethod, Method } from "../typedef";
 import mergeConfig from "./merge";
 
 function factoryForHttpMethod(method: Method): HttpMethod {
   return (function httpMethod(url, options) {
-    return schedulerOnSingleRequest(mergeConfig(url, options, method));
+    return exectionOfSingleRequest(mergeConfig(url, options, method));
   }) as HttpMethod;
 }
 

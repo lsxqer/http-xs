@@ -64,37 +64,22 @@ export function isEmpty(tar: any): boolean {
   return Object.keys(tar).length === 0;
 }
 
-export function encode(input: string | number | boolean): string {
-  try {
-    return encodeURIComponent(input)
-      .replace(/%3A/gi, ":")
-      .replace(/%24/g, "$")
-      .replace(/%2C/gi, ",")
-      .replace(/%20/g, "+")
-      .replace(/%5B/gi, "[")
-      .replace(/%5D/gi, "]");
-  } catch (e) {
-    console.error(input.toString() + e);
-    return input.toString();
-  }
-}
 
-
-export function forEach<T = any>(target: any, each: (key: string, val: T) => void): void {
+export function forEach<T extends Record<string, unknown> | Array<unknown> = any, K extends keyof T = keyof T>(target: any, each: (key: K, val: T[K]) => void): void {
   if (target === null || target === undefined) {
     return;
   }
   if ("forEach" in target) {
     return target.forEach(each);
   }
-
   if (isObject(target)) {
-    return Object.entries(target).forEach(([ key, value ]) => each(key, value as T));
+    return Object.entries(target).forEach(([ key, value ]) => each(key as K, value as T[K]));
   }
 
   for (let [ key, val ] of target as { [Symbol.iterator]() }) {
     each(key, val);
   }
+
 }
 
 

@@ -1,16 +1,15 @@
-import { transfromRequestPayload } from "./transform";
-import { appendQueryToUrl } from "./query";
-import { RequestInterface } from "src/typedef";
-import { isUndef } from "src/utils";
-import { XsHeaders } from "../header";
+import { transfromRequestPayload, urlQuerySerialize } from "./transform";
+import { RequestInterface } from "../typedef";
+import { isUndef } from "../utils";
+import { XsHeaders } from "../parts/headers";
 import { transfromResponse } from "./transform";
-import dispatchRequest from "./dispatchRequest";
-import { compose } from "src/compose";
+import { compose } from "./compose";
+import dispatchRequest from "./platform/dispatchRequest";
 
-export function schedulerOnSingleRequest(completeOpts: RequestInterface) {
-	return compose(completeOpts.use)(completeOpts, async function requestExection(options: RequestInterface) {
+export function exectionOfSingleRequest(completeOpts: RequestInterface) {
+	return compose([ completeOpts.interceptor ].flat(3).filter(Boolean))(completeOpts, async function requestExection(options: RequestInterface) {
 
-		options.url = appendQueryToUrl(options.url, options.query);
+		options.url = urlQuerySerialize(options.url, options.query);
 
 		options.headers = new XsHeaders(options.headers);
 

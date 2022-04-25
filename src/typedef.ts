@@ -2,58 +2,13 @@ import { Agent, ClientRequest, ClientRequestArgs, IncomingMessage } from "http";
 export { ClientRequest, IncomingMessage };
 export type { ClientRequestArgs };
 import { ReadStream } from "fs";
+import { ResponseStruct } from "./core/complete";
 
 export type UseMidware = (req: RequestInterface, next: () => Promise<ResponseStruct>) => Promise<ResponseStruct>;
+export type { ResponseStruct };
 
 export type Method = "post" | "get" | "put" | "delete" | "head" | "options" | "patch"
 export type PromiseFunction<T> = (...args: any) => Promise<T>;
-
-
-export interface ResponseStruct<T = any, R = RequestInterface> {
-
-  /**
-  * response - 具体响应数据
-  */
-  response: T;
-
-  /**
-   * ok - 本次请求是否成功
-   */
-  ok: boolean;
-
-  /**
-   * status - 本次请求的状态码
-   *  也可能请求未被处理
-   */
-  status: number;
-
-  /**
-   * message - 请求响应的描述信息
-   */
-  message: string;
-
-  /**
-   * timeout - 响应时间
-   */
-  timeout: number;
-
-  /**
-   * type - 响应的类型
-   *  - default -> basic
-   */
-  type: ResponseType | "opaque" | "aborted" | "timeout" | "status" | "client";
-
-  /**
-   * headers - 请求响应头
-   *  - 参考请求头的headers选择
-   */
-  headers: XsHeaderImpl;
-
-  /**
-   * completeConfig - 本次请求最终使用到的请求参数
-   */
-  completeConfig: R;
-}
 
 
 export interface XsHeaderImpl {
@@ -159,7 +114,7 @@ export interface RequestInterface {
    *  - transformationRequest[]
    */
   //  transformationRequest?: R
-  use?: UseMidware[]
+  interceptor?: UseMidware | UseMidware[]
 
   /**
    * TransformationResponse - 用户响应数据的转换属性
@@ -192,7 +147,7 @@ export interface RequestInterface {
   referrer?: string;
   referrerPolicy?: ReferrerPolicy;
   signal?: AbortController;
-  
+
   // node
   /**
    * request 函数的配置项
@@ -219,14 +174,14 @@ export interface Dic {
 }
 
 
-export interface XsEventTargetImpl {
+export interface IXsEventTarget {
   addEventListener(type: string, listener: (event: any) => void, opts?: Record<string, unknown>): void;
   dispatchEvent(event: any): void;
   removeEventListener(type: string, listener: (event: any) => void)
 }
 
 export interface XsCancelImpl {
-  signal: XsEventTargetImpl & {
+  signal: IXsEventTarget & {
     aborted: boolean
   }
   abort(): void

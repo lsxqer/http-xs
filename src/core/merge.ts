@@ -10,11 +10,12 @@ export default function mergeConfig(
 
   let completeOpts: RequestInterface = {};
 
+  if (typeof url === "string") {
+    completeOpts.url = url;
+  }
+
   if (isObject(url)) {
     copyTo(url, completeOpts);
-  }
-  else {
-    completeOpts.url = url;
   }
 
   if (isObject(options)) {

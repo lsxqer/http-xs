@@ -1,15 +1,15 @@
 
 
-interface EventEmitterImpl {
+interface IEventEmitter {
   once(type: keyof AbortSignalEventMap, listener: (...args) => void): void;
   emit(Event): void;
   removeListener(type: keyof AbortSignalEventMap, listener: (...args) => void): void;
 }
 
 
-class XsEventTarget {
+export class XsEventTarget {
 
-  private events: EventEmitterImpl;
+  private events: IEventEmitter;
 
   constructor() {
     let EventEmitter = require("events");
@@ -31,7 +31,7 @@ class XsEventTarget {
 }
 
 
-export function getEventTarget() {
+export function getAdapEventTarget() {
   if (typeof EventTarget !== "undefined") {
     return EventTarget;
   }

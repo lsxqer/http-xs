@@ -1,17 +1,14 @@
-import { schedulerOnSingleRequest } from "./core/request";
+import { exectionOfSingleRequest } from "./core/request";
 import mergeConfig from "./core/merge";
-import XsHeaders, { defaultContentType } from "./header";
-import { UseMidware, Method, RequestInterface, XsHeaderImpl } from "./typedef";
-import { isObject, promiseReject, copyTo, promiseResolve, forEach } from "./utils";
-import XsCancel from "./cancel";
-import { deriveInterfaceWrapper, defineInterface, RecordInterface, repeatExecution } from "src";
-import { concurrent } from "./core/concurrent";
+import { UseMidware, Method, RequestInterface, XsHeaderImpl, HttpMethod } from "./typedef";
+import { isObject } from "./utils";
+import { RecordInterface } from "./parts/define";
+import HttpXsDefaultProto from "./proto";
 
 const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ] as Method[];
 
-
 interface DefaultConfig {
-  use?: UseMidware[];
+  interceptor?: UseMidware[];
   headers?: RequestInterface["headers"];
 
   timeout?: number;
@@ -22,9 +19,10 @@ interface DefaultConfig {
 
 function pushMidHandler(...args: UseMidware[]);
 function pushMidHandler(mids: UseMidware[]);
+function pushMidHandler(fn: UseMidware);
 function pushMidHandler(this: { defaultConfig: DefaultConfig }, ...args) {
   // 可能是10
-  this.defaultConfig.use.push(...args.flat(10));
+  this.defaultConfig.interceptor.push(...args.flat(10));
   return this;
 }
 
@@ -34,21 +32,25 @@ function mergeDefaultInceConfig(defaultConfig: DefaultConfig, customReq: Request
   let { headers, baseUrl = "" } = defaultConfig;
 
   // header
-  customReq.headers = new XsHeaders(customReq.headers);
+  customReq.headers = new HttpXsDefaultProto.XsHeaders(customReq.headers);
 
   (headers as XsHeaderImpl).forEach(function each(val, key) {
     (customReq.headers as XsHeaderImpl).set(key, val);
   });
 
   // url
-  customReq.url = baseUrl + customReq.url.replace(/^\?*/, "/");
+  customReq.url = baseUrl + customReq.url.replace(/^\/*/, "/");
 
   // use
-  customReq.use ??= [];
-  customReq.use = defaultConfig.use.concat(customReq.use);
+  customReq.interceptor = defaultConfig.interceptor.concat(customReq.interceptor).filter(Boolean);
 
-  customReq.responseType ??= defaultConfig.responseType;
-  customReq.requestMode ??= defaultConfig.requestMode;
+  if (typeof  defaultConfig.responseType === "string" && typeof customReq.responseType !== "string") {
+    customReq.responseType = defaultConfig.responseType;
+  }
+  
+  if (typeof  defaultConfig.requestMode === "string" && typeof defaultConfig.requestMode !== "string") {
+    customReq.requestMode = defaultConfig.requestMode;
+  }
 
   return customReq;
 }
@@ -59,58 +61,55 @@ function resolveDefaultConfig(defaultConfig?: DefaultConfig) {
     defaultConfig = {};
   }
 
-  defaultConfig.use ??= [];
+  defaultConfig.interceptor ??= [];
 
-  defaultConfig.headers = new XsHeaders(defaultConfig.headers);
+  defaultConfig.headers = new HttpXsDefaultProto.XsHeaders(defaultConfig.headers);
 
-  !(defaultConfig.headers.has(defaultContentType.contentType)) && defaultConfig.headers.set(defaultContentType.contentType, defaultContentType.search);
+  !(defaultConfig.headers.has(HttpXsDefaultProto.contentType.contentType)) && defaultConfig.headers.set(HttpXsDefaultProto.contentType.contentType, HttpXsDefaultProto.contentType.search);
 
   defaultConfig.baseUrl ??= "";
   defaultConfig.baseUrl = defaultConfig.baseUrl.replace(/[?/]*$/, "");
 
-  return Object.freeze(defaultConfig);
+  return defaultConfig;
 }
 
+function createInstance(defaultInstaceConfig?: DefaultConfig): typeof HttpXsDefaultProto & { [key in Method]: HttpMethod } {
 
-function createInstance(defaultInstaceConfig?: DefaultConfig) {
+  const fullInstceConf = resolveDefaultConfig(defaultInstaceConfig);
+  const instce = Object.create(null);
 
-  defaultInstaceConfig = resolveDefaultConfig(defaultInstaceConfig);
+  instce.defaultConfig = fullInstceConf;
 
-  const proto = Object.create(null), instce = Object.create(null);
-
-  Object.setPrototypeOf(instce, Object.setPrototypeOf(proto, {
-    defaultConfig: defaultInstaceConfig,
-    injectIntercept: pushMidHandler,
-    request: schedulerOnSingleRequest
-  }));
+  instce.use = function use(fn: UseMidware) {
+    pushMidHandler.call(this, fn);
+    return this;
+  };
 
   methodNamed.forEach(function each(method) {
-    instce[method] = async function HttpMethod(this: { defaultConfig: DefaultConfig }, url, opts) {
+    instce[method] = function HttpMethod(this: { defaultConfig: DefaultConfig }, url, opts) {
       // ! 会覆盖
       // ? merge baseConfig
-      return schedulerOnSingleRequest(mergeDefaultInceConfig(instce.defaultConfig, mergeConfig(url, opts)));
+      let finish = mergeDefaultInceConfig(this.defaultConfig, mergeConfig(url, opts));
+      finish.method = method;
+      return exectionOfSingleRequest(finish);
     };
   });
 
-  instce.XsCancel = XsCancel;
-  instce.XsHeader = XsHeaders;
-  instce.defaultContentType = { ...defaultContentType };
-  instce.deriveInterfaceWrapper = deriveInterfaceWrapper;
-  instce.promiseResolve = promiseResolve;
-  instce.promiseReject = promiseReject;
-  instce.copyTo = copyTo;
-  instce.forEach = forEach;
-  instce.repeatExecution = repeatExecution;
-  instce.concurrent = concurrent;
-
   instce.defineInterface = function (apiDefine: RecordInterface) {
-    return defineInterface(instce, apiDefine);
+    return HttpXsDefaultProto.defineInterface(instce, apiDefine);
   };
 
-  instce.setProfix = function (profix: string) {
-    defaultInstaceConfig.baseUrl += profix.replace(/^\/*/, "/");
+  instce.setProfix = function (nextUrl: string, replace = false) {
+    if (replace) {
+      this.defaultConfig.baseUrl = nextUrl;
+      return;
+    }
+
+    fullInstceConf.baseUrl += nextUrl.replace(/^\/*/, "/");
   };
 
+
+  Object.setPrototypeOf(instce, HttpXsDefaultProto);
 
   return instce;
 }

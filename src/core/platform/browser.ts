@@ -1,28 +1,28 @@
-import { ResponseStruct, RequestInterface, XsHeaderImpl } from "../typedef";
-import { XsError, createResolve } from "./complete";
-import { promiseReject, promiseResolve } from "../utils";
-import XsHeaders from "../header";
-import XsCancel from "../cancel";
-import { validateFetchStatus } from "./validateCode";
+import { RequestInterface, XsHeaderImpl } from "../../typedef";
+import { XsError, validateFetchStatus, ResponseStruct } from "../complete";
+import { promiseReject, promiseResolve } from "../../utils";
+import XsHeaders from "../../parts/headers";
+import XsCancel from "../../cancel";
 
+const each = (init, line) => {
+  let [ key, val ] = line.split(":");
+  init[key] = val.trim();
+  return init;
+};
 
 function parserRawHeader(xhr: XMLHttpRequest) {
   let head;
   let h = (xhr.getAllResponseHeaders() ?? "").trim();
 
   if (h.length > 0) {
-    head = h.split(/\r\n/).reduce(function each(init, line) {
-      let [ key, val ] = line.split(":");
-      init[key] = val.trim();
-      return init;
-    }, {});
+    head = h.split(/\r\n/).reduce(each, {});
   }
 
   return new XsHeaders(head);
 }
 
 
-export function xhrRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterface): Promise<R> {
+export function xhrRequest<T = any>(opts: RequestInterface): Promise<ResponseStruct<T>> {
 
   let xhr = new XMLHttpRequest();
 
@@ -54,23 +54,22 @@ export function xhrRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfac
       abort = null;
     };
 
-    // 移除监听器
     opts.cancel.signal.addEventListener("abort", abort, { once: true });
   }
 
   return new Promise(function executor(resolve, reject) {
     xhr.onabort = function onAbort() {
-      reject(new XsError(xhr.status, "Http-xs: Client Aborted", xhr.timeout, opts, parserRawHeader(xhr), "abort"));
+      reject(new XsError(xhr.status, "Http-xs: Client Aborted", opts, parserRawHeader(xhr), "abort"));
       xhr = null;
     };
 
     xhr.ontimeout = function onTimeout() {
-      reject(new XsError(xhr.status, `Http-xs: Network Timeout of ${xhr.timeout}ms`, xhr.timeout, opts, parserRawHeader(xhr), "timeout"));
+      reject(new XsError(xhr.status, `Http-xs: Network Timeout of ${xhr.timeout}ms`, opts, parserRawHeader(xhr), "timeout"));
       xhr = null;
     };
 
     xhr.onerror = function onError() {
-      reject(new XsError(xhr.status, "Http-xs: Network Error", xhr.timeout, opts, parserRawHeader(xhr), "error"));
+      reject(new XsError(xhr.status, "Http-xs: Network Error", opts, parserRawHeader(xhr), "error"));
       xhr = null;
     };
 
@@ -81,14 +80,17 @@ export function xhrRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfac
       if (this.responseURL.startsWith("file:") || this.status === 0) {
         return;
       }
-      createResolve(
+
+      new ResponseStruct<T>(
         validateFetchStatus(this.status, resolve, reject),
-        opts,
         this.response,
-        parserRawHeader(this),
         this.status,
-        this.statusText
+        this.statusText,
+        opts,
+        null,
+        parserRawHeader(this)
       );
+
       xhr = null;
     };
 
@@ -97,12 +99,11 @@ export function xhrRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterfac
 }
 
 
-export async function fetchRequest<T = any, R = ResponseStruct<T>>(opts: RequestInterface): Promise<R> {
+export async function fetchRequest<T = any>(opts: RequestInterface): Promise<ResponseStruct<T>> {
 
   let url = opts.url;
 
   let cancelController: AbortController = opts.signal;
-
 
   if (typeof opts.cancel !== "undefined") {
     if (opts.cancel instanceof XsCancel) {
@@ -123,7 +124,6 @@ export async function fetchRequest<T = any, R = ResponseStruct<T>>(opts: Request
       cancelController = opts.cancel as AbortController;
     }
   }
-
 
   let header = opts.headers as any;
 
@@ -152,29 +152,28 @@ export async function fetchRequest<T = any, R = ResponseStruct<T>>(opts: Request
     readBody = await fetch(req);
 
     let body = readBody.clone();
-
-    let response = await readBody[opts.responseType]();
-
+    let response = await readBody[opts.responseType]().catch(() => body.text());
     let xsHeader = new XsHeaders();
 
     body.headers.forEach((val, key) => xsHeader.set(key, val));
 
-    return createResolve(
+    return new ResponseStruct<T>(
       validateFetchStatus(body.status, promiseResolve, promiseReject),
-      opts,
       response,
-      xsHeader,
       body.status,
       body.statusText,
-      body.type
+      opts,
+      body.type,
+      xsHeader
     );
+
   } catch (exx) {
     let header = new XsHeaders();
 
     // fetch 取消请求时的错误对象 —> DOMException
     if (exx instanceof DOMException) {
-      return promiseReject(new XsError(0, `Http-xs: Client Abort ${exx.toString()}`, null, opts, header, "abort"));
+      return promiseReject(new XsError(0, `Http-xs: Client Abort ${exx.toString()}`, opts, header, "abort"));
     }
-    return promiseReject(new XsError(0, `Http-xs: ${(exx as Error).message}`, null, opts, header, "error"));
+    return promiseReject(new XsError(0, `Http-xs: ${(exx as Error).message}`, opts, header, "error"));
   }
 }

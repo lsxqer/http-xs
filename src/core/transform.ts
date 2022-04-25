@@ -1,8 +1,88 @@
-import { isNode } from "../utils";
+import { isNode, isEmpty, valueOf } from "../utils";
 import { RequestInterface, XsHeaderImpl } from "../typedef";
-import { valueOf, isEmpty, isObject } from "../utils";
-import { defaultContentType } from "../header";
+import { contentType } from "../parts/headers";
+import {  forEach, isAbsoluteURL, isObject, isUndef } from "../utils";
+import { ResponseStruct } from "./complete";
 
+export function encode(input: string): string {
+  try {
+    return encodeURIComponent(input)
+      .replace(/%3A/gi, ":")
+      .replace(/%24/g, "$")
+      .replace(/%2C/gi, ",")
+      .replace(/%20/g, "+")
+      .replace(/%5B/gi, "[")
+      .replace(/%5D/gi, "]");
+  } catch (e) {
+    console.error(input.toString() + e);
+    return input.toString();
+  }
+}
+
+
+const querySerializerMap = {
+  "String": query => query.replace(/^\?*/, "").replace(/&[\w\W]=$/, ""),
+  "URLSearchParams": query => query.toString(),
+  "Object": query => {
+    let queryList = [];
+
+    forEach(query, function each(key, val) {
+      if (val === null || val === "undfefined") {
+        return;
+      }
+
+      let valType = valueOf(val);
+
+      switch (valType) {
+        case "URLSearchParams":
+          val = val.toString();
+          break;
+        case "Array":
+          val = val.join();
+          break;
+        case "Object":
+          val = JSON.stringify(val);
+          break;
+        default:
+          val = val.toString();
+
+          // wran to console
+          break;
+      }
+
+      queryList.push(`${encode(key as string)}=${encode(val)}`);
+    });
+
+    return queryList.join("&");
+  }
+};
+
+export function urlQuerySerialize(originalUrl = "", sourceQuery: Record<string | number, unknown> | URLSearchParams | string) {
+
+  if (!isAbsoluteURL(originalUrl)) {
+    originalUrl = originalUrl.replace(/^\/*/, "/").replace(/\/*$/, "").replace(/\s*/g, "").replace(/#[\w\W]*/g, "");
+  }
+
+  let hasUrlInQuery = originalUrl.lastIndexOf("?") !== -1;
+
+  if (!isUndef(sourceQuery)) {
+    let nextQueryRaw = "";
+
+    // query -> urlSearchParams
+    // query -> string
+    // query -> dict
+    // query -> list
+
+    let sourceQueryType = valueOf(sourceQuery);
+    let serialize = querySerializerMap[sourceQueryType];
+
+    nextQueryRaw = serialize(sourceQuery);
+
+    originalUrl += hasUrlInQuery ? "&" : `?${nextQueryRaw}`;
+  }
+
+  return originalUrl;
+}
 
 export function transfromRequestPayload(opts: RequestInterface) {
   let body = opts.body;
@@ -13,16 +93,16 @@ export function transfromRequestPayload(opts: RequestInterface) {
   }
 
   let header = opts.headers as XsHeaderImpl;
-  let contentType = header.get(defaultContentType.contentType), replaceContentType = contentType;
+  let headerType = header.get(contentType.contentType), replaceContentType = headerType;
 
   switch (valueOf(body).toLowerCase()) {
     case "array":
     case "urlsearchparams":
     case "object": {
       if (
-        replaceContentType?.includes("application/json") && 
+        replaceContentType?.includes("application/json") &&
         (isObject(body) || Array.isArray(body))
-        ) {
+      ) {
         body = JSON.stringify(body);
       }
       else {
@@ -33,11 +113,11 @@ export function transfromRequestPayload(opts: RequestInterface) {
         // node环境转换为buffer传输
         body = Buffer.from(body, "utf-8");
       }
-      replaceContentType = defaultContentType.search;
+      replaceContentType = contentType.search;
       break;
     }
     case "string":
-      replaceContentType = defaultContentType.text;
+      replaceContentType = contentType.text;
       break;
     case "arraybuffer": {
       if (isNode) {
@@ -46,13 +126,13 @@ export function transfromRequestPayload(opts: RequestInterface) {
       break;
     }
     case "formdata": {
-      replaceContentType = contentType = null;
-      header.delete(defaultContentType.contentType);
+      replaceContentType = headerType = null;
+      header.delete(contentType.contentType);
     }
   }
 
   if (isEmpty(contentType) && !isEmpty(replaceContentType)) {
-    header.set(defaultContentType.contentType, replaceContentType);
+    header.set(contentType.contentType, replaceContentType);
   }
 
   opts.headers = header;
@@ -60,10 +140,10 @@ export function transfromRequestPayload(opts: RequestInterface) {
   return body;
 }
 
-export function transfromResponse(responseStruct: any, responseType: string) {
-  let response = responseStruct.response;
+export function transfromResponse(responseStruct: ResponseStruct, responseType: string) {
+  let response = responseStruct.response ?? "";
 
-  switch (responseType.toLowerCase()) {
+  switch (responseType?.toLowerCase()) {
     case "blob":
     case "stream":
     case "buffer":

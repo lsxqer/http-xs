@@ -1,7 +1,7 @@
-import { isObject } from "../utils";
+import { isArray, isObject, valueOf } from "../utils";
 import { XsHeaderImpl } from "../typedef";
 
-export const defaultContentType = {
+export const contentType = {
   contentType: "Content-Type",
   search: "application/x-www-form-urlencoded; charset=UTF-8",
   json: "application/json; charset=UTF-8",
@@ -38,19 +38,28 @@ export function toCamelCase(name: string): string {
 export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
 
   constructor(init?: Record<string, string> | [string, string][] | XsHeaderImpl) {
-    let initialize = [] as [string, string][];
 
+    let initialize: [string, string][] | Record<string, string>;
 
-    if (init instanceof XsHeaders) {
-      // ~ return this.raw;
-      init = init.raw();
-    }
-
-    if (isObject(init)) {
-      init = Array.from(Object.entries(init));
-    }
-    if (Array.isArray(init)) {
-      (init as [string, string][]).forEach(function each([ key, val ]) { initialize.push([ toCamelCase(key), val ]) });
+    switch (true) {
+      case init instanceof XsHeaders:
+        initialize = (init as XsHeaders).raw();
+        break;
+      case valueOf(init) === "Headers": {
+        let headers = init as Headers;
+        initialize = {};
+        headers.forEach((val, key) => initialize[toCamelCase(key)] = val);
+        break;
+      }
+      case isObject(init):
+        init = Object.entries(init);
+      // eslint-disable-next-line
+      case isArray(init):
+        initialize = (init as Array<[string, string]>).reduce((record, entries) => (record[toCamelCase(entries.shift())] = entries.shift()), {});
+        break;
+      default:
+        initialize = {};
+        break;
     }
 
     super(initialize);
