@@ -1,6 +1,6 @@
 import { exectionOfSingleRequest } from "./core/request";
 import mergeConfig from "./core/merge";
-import { UseMidware, Method, RequestInterface, XsHeaderImpl, HttpMethod } from "./typedef";
+import { UseMidware, Method, RequestInterface, XsHeaderImpl, HttpMethod, CustomRequest } from "./typedef";
 import { isObject } from "./utils";
 import { RecordInterface } from "./parts/define";
 import HttpXsDefaultProto from "./proto";
@@ -8,13 +8,41 @@ import HttpXsDefaultProto from "./proto";
 const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ] as Method[];
 
 interface DefaultConfig {
+
+  /**
+   * 实例拦截器
+   */
   interceptor?: UseMidware[];
+
+  /**
+   * 共享headers
+   */
   headers?: RequestInterface["headers"];
 
+  /**
+   * 超时时间
+   */
   timeout?: number;
+
+  /**
+   * 共享url
+   */
   baseUrl?: string;
+
+  /**
+   * 实例响应类型
+   */
   responseType?: RequestInterface["responseType"];
+
+  /**
+   * fetch｜xhr
+   */
   requestMode?: RequestInterface["requestMode"];
+
+  /**
+   * 自定义请求执行函数
+   */
+  customRequest?: CustomRequest;
 }
 
 function pushMidHandler(...args: UseMidware[]);
@@ -44,12 +72,16 @@ function mergeDefaultInceConfig(defaultConfig: DefaultConfig, customReq: Request
   // use
   customReq.interceptor = defaultConfig.interceptor.concat(customReq.interceptor).filter(Boolean);
 
-  if (typeof  defaultConfig.responseType === "string" && typeof customReq.responseType !== "string") {
+  if (typeof defaultConfig.responseType === "string" && typeof customReq.responseType !== "string") {
     customReq.responseType = defaultConfig.responseType;
   }
-  
-  if (typeof  defaultConfig.requestMode === "string" && typeof defaultConfig.requestMode !== "string") {
+
+  if (typeof defaultConfig.requestMode === "string" && typeof defaultConfig.requestMode !== "string") {
     customReq.requestMode = defaultConfig.requestMode;
+  }
+
+  if (typeof defaultConfig.customRequest === "function" && typeof customReq.customRequest !== "function") {
+    customReq.customRequest = defaultConfig.customRequest;
   }
 
   return customReq;
@@ -67,13 +99,21 @@ function resolveDefaultConfig(defaultConfig?: DefaultConfig) {
 
   !(defaultConfig.headers.has(HttpXsDefaultProto.contentType.contentType)) && defaultConfig.headers.set(HttpXsDefaultProto.contentType.contentType, HttpXsDefaultProto.contentType.search);
 
-  defaultConfig.baseUrl ??= "";
-  defaultConfig.baseUrl = defaultConfig.baseUrl.replace(/[?/]*$/, "");
+  if (typeof defaultConfig.baseUrl === "string") {
+    defaultConfig.baseUrl = defaultConfig.baseUrl.replace(/[?/]*$/, "");
+  }
 
   return defaultConfig;
 }
 
-function createInstance(defaultInstaceConfig?: DefaultConfig): typeof HttpXsDefaultProto & { [key in Method]: HttpMethod } {
+interface UseFunction<T> {
+  (fn: UseMidware): T;
+  (fns: UseMidware[]): T;
+  (...fns: UseMidware[]): T;
+}
+type Instance = typeof HttpXsDefaultProto & { [key in Method]: HttpMethod } & { use: UseFunction<Instance> };
+
+function createInstance(defaultInstaceConfig?: DefaultConfig): Instance {
 
   const fullInstceConf = resolveDefaultConfig(defaultInstaceConfig);
   const instce = Object.create(null);
@@ -81,8 +121,7 @@ function createInstance(defaultInstaceConfig?: DefaultConfig): typeof HttpXsDefa
   instce.defaultConfig = fullInstceConf;
 
   instce.use = function use(fn: UseMidware) {
-    pushMidHandler.call(this, fn);
-    return this;
+    return pushMidHandler.call(this, fn);
   };
 
   methodNamed.forEach(function each(method) {

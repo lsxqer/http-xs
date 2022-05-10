@@ -131,6 +131,11 @@ export interface RequestInterface {
    * encoding - node, 设置响应的编码格式
    */
   encoding?: BufferEncoding;
+
+  /**
+   * customRequest - 自定义请求函数
+   */
+  customRequest?:CustomRequest;
 }
 ```
 ### Response
@@ -150,9 +155,9 @@ interface ResponseStruct {
    */
   status: number;
   /**
-   * statusText - 请求响应的描述信息
+   * message - 请求响应的描述信息
    */
-  statusText: string;
+  message: string;
   /**
    * timeout - 响应时间
    */
@@ -168,9 +173,9 @@ interface ResponseStruct {
    */
   headers: XsHeaderImpl;
   /**
-   * enhanceConfig - 本次请求最终使用到的请求参数
+   * completeConfig - 本次请求最终使用到的请求参数
    */
-  enhanceConfig: R;
+  completeConfig: RequestInterface;
 }
 
 ```
@@ -178,35 +183,37 @@ interface ResponseStruct {
 ### 实例选项
 ```ts
 
-interface BaseConfig {
+interface DefaultConfig {
   /**
-   * timeout - 该实例下所有请求的延迟毫秒
+   * 实例拦截器
    */
-  readonly timeout?: number
+  interceptor?: UseMidware[];
   /**
-   * headers - 该实例下所有请求的公共请求头; 优先级 ⬇
-   *   * befor > transformation > Url.Headers > baseConfig.headers
+   * 共享headers
    */
-  readonly headers?: Record<string, string> | [string, string][] | XsHeadersInterface | Headers
+  headers?: RequestInterface["headers"];
   /**
-   * baseUrl - 该实例下所有请求的url会和该属性和并
-   * @example
-   * ```ts
-   * const xs = new HttpXs( { baseUrl : "http://localhost:8090" } )
-   * xs.get("/query") // url -> http://localhost:8090/query
-   * ...
-   * ```
+   * 超时时间
    */
-  readonly baseURL?: string
+  timeout?: number;
   /**
-   * transformationRequest - 该实例下所有请求参数会共享该函数
+   * 共享url
    */
-  transformationRequest?: TransformationRequest | TransformationRequest[]
+  baseUrl?: string;
   /**
-   * transformationResponse - 该实例下所有响应数据会共享该函数
+   * 实例响应类型
    */
-  transformationResponse?: TransformationResponse<R> | TransformationResponse<R>[]
+  responseType?: RequestInterface["responseType"];
+  /**
+   * fetch｜xhr
+   */
+  requestMode?: RequestInterface["requestMode"];
+  /**
+   * 自定义请求执行函数
+   */
+  customRequest?:CustomRequest;
 }
+
 ```
 
 ### 引入
@@ -229,8 +236,8 @@ import HttpXs, { HttpXs } from "http-xs";
 ### 创建一个实例
 
 ```ts
-   
-const xs = new HttpXs({});
+
+const xs = createInstance({});
 
   xs.get("/query?id=1")
         .then(res => /* response... */);
@@ -251,43 +258,31 @@ const xs = new HttpXs({});
 
 ### 请求、响应预处理
 ```ts
-const xs = new HttpXs({});
 
-//! s所有的请求、响应预处理函数暂时不支持Promise
+const xs = create({});
 
-xs.useBefore([
-  opts => {
+xs.use(
+  (req, next) => {
     // coding...
-    return opts;
-  },
-  opts => {
-    opts.headers.set("Content-Type", "application/json");
-    return opts;
-  },
-  opts => {
-    if (!global.isUserLogin) {
-      throw new Error("取消请求")
-    }
-    return opts;
-  },
-  opts => {s
-    setLoading(true);
-    return opts;
+    return next();
   }
-]);
+);
 
-xs.useAfter([
-  res => {
-    setLoading(false);
-    return res;
-  };
-  res => {
-    if (res.ok) {
-      url.replace('xxx');
-    }
+xs.use(
+  (req, next) => {
+    req.headers.set("Content-Type", "application/json");
+    return next();
+  }
+);
+
+xs.use(
+  async (req, next) => {
+    let res = await next();
+    res.ok;
     return res;
   }
-]);
+);
+
 
 ```
 
@@ -342,6 +337,7 @@ import { XsCancel } from "http-xs";
   Get(url,{
     cancel:cancel
   });
+
   cancel.abort(); // 取消
 
 const cancel = new AbortController();
@@ -356,7 +352,8 @@ const cancel = new AbortController();
 
 ### defineInterface
 ```ts
-const httpXs = new HttpXs();
+
+const httpXs = create();
 
 const user = defineInterface(httpXs,
    {
@@ -374,11 +371,10 @@ const user = defineInterface(httpXs,
 user.save(/* options */)
   .then(res => {});
 
-
 user.deleteUser(/* options */)
   .then(res => {})；
 
-const defineInterface = applyRequest(httpXs);
+const defineInterface = deriveInterfaceWrapper(httpXs);
 
 defineInterface({ delete:  {method: "delete" , url: "/delete" } });
 ```

@@ -20,6 +20,11 @@ export interface XsHeaderImpl {
   forEach(callback: (value: string, key: string, parent?: XsHeaderImpl) => void, thisArg?: any): void
 }
 
+
+export interface CustomRequest<Q extends RequestInterface = RequestInterface, R extends ResponseStruct = ResponseStruct> {
+  (req: Q): Promise<R>;
+}
+
 export interface RequestInterface {
 
   /**
@@ -165,7 +170,12 @@ export interface RequestInterface {
   /**
    * encoding - node, 设置响应的编码格式
    */
-  encoding?: BufferEncoding
+  encoding?: BufferEncoding;
+
+  /**
+   * customRequest - 自定义请求函数
+   */
+  customRequest?:CustomRequest;
 }
 
 

@@ -12,9 +12,9 @@ import { nodeRequest } from "./http";
 export default function dispatchRequest(config: RequestInterface): <T = any>(opts: RequestInterface) => Promise<ResponseStruct<T>> {
 
   // custom request
-  // if (typeof config.request === "function") {
-  //   return config.request;
-  // }
+  if (typeof config.customRequest === "function") {
+    return config.customRequest;
+  }
 
   if (isNode) {
     return nodeRequest;

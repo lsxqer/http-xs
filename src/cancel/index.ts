@@ -12,5 +12,4 @@ export default class XsCancel {
     this.signal.dispatchEvent(getAdaptEvent());
     this.signal.aborted = true;
   }
-
 }
