@@ -1,4 +1,4 @@
-import { HttpMethod, Method, RequestInterface, ResponseStruct, UseMidware } from "../typedef";
+import { HttpMethod, Method, RequestInterface, ResponseStruct, UseMidwareCallback } from "../typedef";
 
 export interface RecordInterface {
   [p: string]: {
@@ -87,9 +87,9 @@ export function defineInterface(store: MethodStore, record: RecordInterface): Re
       config.url = methodConf.url;
 
       let hasInterceptor = Array.isArray(config.interceptor);
-      let interceptor = (hasInterceptor ? config.interceptor : [ config.interceptor ].filter(Boolean)) as UseMidware[];
+      let interceptor = (hasInterceptor ? config.interceptor : [ config.interceptor ].filter(Boolean)) as UseMidwareCallback[];
 
-      let loading = async (req, next) => {
+      let loading = (async (req, next) => {
 
         executor.loading = true;
         let res = await next();
@@ -110,7 +110,7 @@ export function defineInterface(store: MethodStore, record: RecordInterface): Re
         }
 
         return res;
-      };
+      }) as UseMidwareCallback;
 
       interceptor.push(loading);
 

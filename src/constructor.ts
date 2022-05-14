@@ -1,6 +1,6 @@
 import { exectionOfSingleRequest } from "./core/request";
 import mergeConfig from "./core/merge";
-import { UseMidware, Method, RequestInterface, XsHeaderImpl, HttpMethod, CustomRequest } from "./typedef";
+import { UseMidwareCallback, Method, RequestInterface, XsHeaderImpl, HttpMethod, CustomRequest } from "./typedef";
 import { isObject } from "./utils";
 import { RecordInterface } from "./parts/define";
 import HttpXsDefaultProto from "./proto";
@@ -12,7 +12,7 @@ interface DefaultConfig {
   /**
    * 实例拦截器
    */
-  interceptor?: UseMidware[];
+  interceptor?: UseMidwareCallback[];
 
   /**
    * 共享headers
@@ -45,15 +45,10 @@ interface DefaultConfig {
   customRequest?: CustomRequest;
 }
 
-function pushMidHandler(...args: UseMidware[]);
-function pushMidHandler(mids: UseMidware[]);
-function pushMidHandler(fn: UseMidware);
-function pushMidHandler(this: { defaultConfig: DefaultConfig }, ...args) {
-  // 可能是10
-  this.defaultConfig.interceptor.push(...args.flat(10));
-  return this;
-}
-
+const del = (async (req, next) => next().then(r => {
+    delete req.interceptor;
+    return r;
+  })) as UseMidwareCallback;
 
 function mergeDefaultInceConfig(defaultConfig: DefaultConfig, customReq: RequestInterface) {
 
@@ -69,8 +64,9 @@ function mergeDefaultInceConfig(defaultConfig: DefaultConfig, customReq: Request
   // url
   customReq.url = baseUrl + customReq.url.replace(/^\/*/, "/");
 
+
   // use
-  customReq.interceptor = defaultConfig.interceptor.concat(customReq.interceptor).filter(Boolean);
+  customReq.interceptor = defaultConfig.interceptor.concat(customReq.interceptor, del).filter(Boolean);
 
   if (typeof defaultConfig.responseType === "string" && typeof customReq.responseType !== "string") {
     customReq.responseType = defaultConfig.responseType;
@@ -106,11 +102,15 @@ function resolveDefaultConfig(defaultConfig?: DefaultConfig) {
   return defaultConfig;
 }
 
-interface UseFunction<T> {
-  (fn: UseMidware): T;
-  (fns: UseMidware[]): T;
-  (...fns: UseMidware[]): T;
+interface UseFunction<
+  T,
+  F extends (...arg: Parameters<UseMidwareCallback>) => ReturnType<UseMidwareCallback> = (...arg: Parameters<UseMidwareCallback>) => ReturnType<UseMidwareCallback>
+  > {
+  (fn: F): T;
+  (fns: F[]): T;
+  (...fns: F[]): T;
 }
+
 type Instance = typeof HttpXsDefaultProto & { [key in Method]: HttpMethod } & { use: UseFunction<Instance> };
 
 function createInstance(defaultInstaceConfig?: DefaultConfig): Instance {
@@ -120,8 +120,9 @@ function createInstance(defaultInstaceConfig?: DefaultConfig): Instance {
 
   instce.defaultConfig = fullInstceConf;
 
-  instce.use = function use(fn: UseMidware) {
-    return pushMidHandler.call(this, fn);
+  instce.use = function use(...fns: UseMidwareCallback[]) {
+    this.defaultConfig.interceptor.push(...fns.flat(10));
+    return this;
   };
 
   methodNamed.forEach(function each(method) {

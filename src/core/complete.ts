@@ -39,6 +39,7 @@ export class XsError<T = any, R extends RequestInterface = RequestInterface> ext
 export class ResponseStruct<T = any, R extends RequestInterface = RequestInterface> {
 
   public response: T;
+  public ok  = false;
 
   constructor(
     complete: ((argv: ResponseStruct<T> | Error) => void),
@@ -53,7 +54,8 @@ export class ResponseStruct<T = any, R extends RequestInterface = RequestInterfa
   ) {
 
     this.response = originalResponseBody;
-
+    this.ok = validateCode(status);
+    
     complete(this);
   }
 
@@ -61,9 +63,9 @@ export class ResponseStruct<T = any, R extends RequestInterface = RequestInterfa
     return typeof this.completeConfig.timeout === "number" ? this.completeConfig.timeout : null;
   }
 
-  get ok() {
-    return validateCode(this.status);
-  }
+  // get ok() {
+  //   return validateCode(this.status);
+  // }
 
   private refetch(opts?: RequestInterface) {
     this.completeConfig = mergeConfig(opts, this.completeConfig) as R;

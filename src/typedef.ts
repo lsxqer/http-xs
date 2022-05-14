@@ -4,7 +4,12 @@ export type { ClientRequestArgs };
 import { ReadStream } from "fs";
 import { ResponseStruct } from "./core/complete";
 
-export type UseMidware = (req: RequestInterface, next: () => Promise<ResponseStruct>) => Promise<ResponseStruct>;
+
+export interface UseMidwareCallback<R = ResponseStruct, T = RequestInterface> {
+  (req: RequestInterface): Promise<R | T> | T | R;
+  (req: RequestInterface, next: () => Promise<ResponseStruct>): Promise<R | T> | T | R;
+}
+
 export type { ResponseStruct };
 
 export type Method = "post" | "get" | "put" | "delete" | "head" | "options" | "patch"
@@ -114,29 +119,14 @@ export interface RequestInterface {
   withCredentials?: boolean
 
   /**
-   * transformationRequest - 请求转换处理函数
-   *  - transformationRequest
-   *  - transformationRequest[]
+   * 之前请求前后做点什么
    */
-  //  transformationRequest?: R
-  interceptor?: UseMidware | UseMidware[]
-
-  /**
-   * TransformationResponse - 用户响应数据的转换属性
-   *  - TransformationResponse
-   *  - TransformationResponse [ ]
-   */
-  //  transformationResponse?: P
+  interceptor?: UseMidwareCallback | UseMidwareCallback[]
 
   /**
    * requestMode 在浏览器端选用发送本次请求的对象
    */
   requestMode?: "xhr" | "fetch"
-
-  /**
-   *  request - 自定义请求的函数。接受一个options。需要返回一个Response
-   */
-  //  request?: BuildRequest
 
   // fetch
   /**
@@ -175,14 +165,8 @@ export interface RequestInterface {
   /**
    * customRequest - 自定义请求函数
    */
-  customRequest?:CustomRequest;
+  customRequest?: CustomRequest;
 }
-
-
-export interface Dic {
-  [k: string]: any;
-}
-
 
 export interface IXsEventTarget {
   addEventListener(type: string, listener: (event: any) => void, opts?: Record<string, unknown>): void;

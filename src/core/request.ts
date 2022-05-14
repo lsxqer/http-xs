@@ -5,8 +5,9 @@ import { XsHeaders } from "../parts/headers";
 import { transfromResponse } from "./transform";
 import { compose } from "./compose";
 import dispatchRequest from "./platform/dispatchRequest";
+import { ResponseStruct } from "./complete";
 
-export function exectionOfSingleRequest(completeOpts: RequestInterface) {
+export function exectionOfSingleRequest(completeOpts: RequestInterface): ResponseStruct {
 	return compose([ completeOpts.interceptor ].flat(3).filter(Boolean))(completeOpts, async function requestExection(options: RequestInterface) {
 
 		options.url = urlQuerySerialize(options.url, options.query);
