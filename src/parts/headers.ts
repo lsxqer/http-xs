@@ -5,7 +5,10 @@ export const contentType = {
   contentType: "Content-Type",
   search: "application/x-www-form-urlencoded; charset=UTF-8",
   json: "application/json; charset=UTF-8",
-  text: "text/plain;charset=UTF-8"
+  text: "text/plain;charset=UTF-8",
+  isJSON(src?:string) {
+    return src?.includes("application/json");
+  }
 };
 
 /**

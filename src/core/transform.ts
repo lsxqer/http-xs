@@ -1,7 +1,7 @@
 import { isNode, isEmpty, valueOf } from "../utils";
 import { RequestInterface, XsHeaderImpl } from "../typedef";
 import { contentType } from "../parts/headers";
-import {  forEach, isAbsoluteURL, isObject, isUndef } from "../utils";
+import { forEach, isAbsoluteURL, isObject, isUndef } from "../utils";
 import { ResponseStruct } from "./complete";
 
 export function encode(input: string): string {
@@ -93,14 +93,14 @@ export function transfromRequestPayload(opts: RequestInterface) {
   }
 
   let header = opts.headers as XsHeaderImpl;
-  let headerType = header.get(contentType.contentType), replaceContentType = headerType;
+  let headerContentType = header.get(contentType.contentType), replaceContentType = headerContentType;
 
   switch (valueOf(body).toLowerCase()) {
     case "array":
     case "urlsearchparams":
     case "object": {
       if (
-        replaceContentType?.includes("application/json") &&
+        contentType.isJSON(replaceContentType) &&
         (isObject(body) || Array.isArray(body))
       ) {
         body = JSON.stringify(body);
@@ -113,6 +113,7 @@ export function transfromRequestPayload(opts: RequestInterface) {
         // node环境转换为buffer传输
         body = Buffer.from(body, "utf-8");
       }
+
       replaceContentType = contentType.search;
       break;
     }
@@ -126,12 +127,12 @@ export function transfromRequestPayload(opts: RequestInterface) {
       break;
     }
     case "formdata": {
-      replaceContentType = headerType = null;
+      replaceContentType = headerContentType = null;
       header.delete(contentType.contentType);
     }
   }
 
-  if (isEmpty(contentType) && !isEmpty(replaceContentType)) {
+  if (isEmpty(headerContentType) && !isEmpty(replaceContentType)) {
     header.set(contentType.contentType, replaceContentType);
   }
 

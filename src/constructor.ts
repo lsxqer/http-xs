@@ -1,4 +1,3 @@
-import { exectionOfSingleRequest } from "./core/request";
 import mergeConfig from "./core/merge";
 import { UseMidwareCallback, Method, RequestInterface, XsHeaderImpl, HttpMethod, CustomRequest } from "./typedef";
 import { isObject } from "./utils";
@@ -45,11 +44,6 @@ interface DefaultConfig {
   customRequest?: CustomRequest;
 }
 
-const del = (async (req, next) => next().then(r => {
-    delete req.interceptor;
-    return r;
-  })) as UseMidwareCallback;
-
 function mergeDefaultInceConfig(defaultConfig: DefaultConfig, customReq: RequestInterface) {
 
   let { headers, baseUrl = "" } = defaultConfig;
@@ -64,9 +58,25 @@ function mergeDefaultInceConfig(defaultConfig: DefaultConfig, customReq: Request
   // url
   customReq.url = baseUrl + customReq.url.replace(/^\/*/, "/");
 
+  let existsInterceptor = customReq.interceptor;
+  let hasInterceptor = Array.isArray(existsInterceptor) || typeof existsInterceptor === "function";
+
+  let del = (async (_req, next) => next().then(r => {
+    if (hasInterceptor) {
+      customReq.interceptor = existsInterceptor;
+    }
+    else {
+      delete customReq.interceptor;
+    }
+
+    del = existsInterceptor = null;
+    return r;
+  })) as UseMidwareCallback;
 
   // use
-  customReq.interceptor = defaultConfig.interceptor.concat(customReq.interceptor, del).filter(Boolean);
+  if (Array.isArray(defaultConfig.interceptor)) {
+    customReq.interceptor = defaultConfig.interceptor.concat(del, existsInterceptor).filter(Boolean);
+  }
 
   if (typeof defaultConfig.responseType === "string" && typeof customReq.responseType !== "string") {
     customReq.responseType = defaultConfig.responseType;
@@ -89,8 +99,6 @@ function resolveDefaultConfig(defaultConfig?: DefaultConfig) {
     defaultConfig = {};
   }
 
-  defaultConfig.interceptor ??= [];
-
   defaultConfig.headers = new HttpXsDefaultProto.XsHeaders(defaultConfig.headers);
 
   !(defaultConfig.headers.has(HttpXsDefaultProto.contentType.contentType)) && defaultConfig.headers.set(HttpXsDefaultProto.contentType.contentType, HttpXsDefaultProto.contentType.search);
@@ -109,6 +117,7 @@ interface UseFunction<
   (fn: F): T;
   (fns: F[]): T;
   (...fns: F[]): T;
+  delete(fn: F): boolean;
 }
 
 type Instance = typeof HttpXsDefaultProto & { [key in Method]: HttpMethod } & { use: UseFunction<Instance> };
@@ -121,8 +130,23 @@ function createInstance(defaultInstaceConfig?: DefaultConfig): Instance {
   instce.defaultConfig = fullInstceConf;
 
   instce.use = function use(...fns: UseMidwareCallback[]) {
-    this.defaultConfig.interceptor.push(...fns.flat(10));
+    let uses = instce.defaultConfig.interceptor;
+
+    if (!Array.isArray(uses)) {
+      uses = instce.defaultConfig.interceptor = [];
+    }
+
+    uses.push(...fns.flat(10));
     return this;
+  };
+
+  instce.use.delete = function deleteUseFunction(fn: UseMidwareCallback) {
+    let used = instce.defaultConfig.interceptor;
+    if (!Array.isArray(used)) {
+      return false;
+    }
+    let deletion = used.splice(used.findIndex(fn), 1);
+    return deletion.length !== 0;
   };
 
   methodNamed.forEach(function each(method) {
@@ -131,7 +155,7 @@ function createInstance(defaultInstaceConfig?: DefaultConfig): Instance {
       // ? merge baseConfig
       let finish = mergeDefaultInceConfig(this.defaultConfig, mergeConfig(url, opts));
       finish.method = method;
-      return exectionOfSingleRequest(finish);
+      return instce.request(finish);
     };
   });
 
@@ -153,6 +177,7 @@ function createInstance(defaultInstaceConfig?: DefaultConfig): Instance {
 
   return instce;
 }
+
 
 export { createInstance };
 export default createInstance;

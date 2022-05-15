@@ -1,4 +1,4 @@
-import { HttpMethod, Method, RequestInterface, ResponseStruct, UseMidwareCallback } from "../typedef";
+import { HttpMethod, Method, RequestInterface, ResponseStruct } from "../typedef";
 
 export interface RecordInterface {
   [p: string]: {
@@ -85,35 +85,7 @@ export function defineInterface(store: MethodStore, record: RecordInterface): Re
       }
 
       config.url = methodConf.url;
-
-      let hasInterceptor = Array.isArray(config.interceptor);
-      let interceptor = (hasInterceptor ? config.interceptor : [ config.interceptor ].filter(Boolean)) as UseMidwareCallback[];
-
-      let loading = (async (req, next) => {
-
-        executor.loading = true;
-        let res = await next();
-        executor.loading = false;
-
-        let i = 0;
-        while (i < interceptor.length) {
-          if (interceptor[i] === loading) {
-            interceptor.splice(i, 1);
-            loading = null;
-            break;
-          }
-          i++;
-        }
-
-        if (!hasInterceptor) {
-          delete config.interceptor;
-        }
-
-        return res;
-      }) as UseMidwareCallback;
-
-      interceptor.push(loading);
-
+      
       return store[method](config);
     }) as any;
 
