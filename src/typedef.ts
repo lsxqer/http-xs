@@ -1,13 +1,14 @@
-import { Agent, ClientRequest, ClientRequestArgs, IncomingMessage } from "http";
-export { ClientRequest, IncomingMessage };
-export type { ClientRequestArgs };
+import type { Agent, ClientRequest, ClientRequestArgs, IncomingMessage } from "http";
 import { ReadStream } from "fs";
 import { ResponseStruct } from "./core/complete";
 
+export type { ClientRequestArgs, ClientRequest, IncomingMessage };
 
-export interface UseMidwareCallback<R = ResponseStruct, T = RequestInterface> {
-  (req: RequestInterface): Promise<R | T> | T | R;
-  (req: RequestInterface, next: () => Promise<ResponseStruct>): Promise<R | T> | T | R;
+
+export interface RequestUseCallback<UR = RequestInterface> {
+  (req: RequestInterface, next: <Res = any, T = ResponseStruct<Res>>() => Promise<T>): UR | Promise<UR>;
+
+  // Promise<ResponseStruct<any | RequestInterface>> | RequestInterface | any;
 }
 
 export type { ResponseStruct };
@@ -60,6 +61,12 @@ export interface RequestInterface {
    *   - URLSearchParams
    */
   query?: Record<string, unknown> | string | URLSearchParams
+
+  /**
+   * queryMatch - 动态路由
+   *    /query/{id} -> /query/123
+   */
+  queryMatch?: (string | boolean | number)[]
 
   /**
    * body - fetch、xhr、node 平台支持的请求体
@@ -121,7 +128,7 @@ export interface RequestInterface {
   /**
    * 之前请求前后做点什么
    */
-  interceptor?: UseMidwareCallback | UseMidwareCallback[]
+  interceptor?: RequestUseCallback<any> | RequestUseCallback<any>[]
 
   /**
    * requestMode 在浏览器端选用发送本次请求的对象

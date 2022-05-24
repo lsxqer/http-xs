@@ -42,6 +42,7 @@
         "for-direction": "error",
         "no-var": "error",
         "no-explicit-any": "off",
+        "no-restricted-syntax":"off",
         "linebreak-style": [
             "error",
             "windows"
@@ -118,10 +119,6 @@
         "prefer-const": "off",
         "no-template-curly-in-string": "error",
         "no-multi-str": "error",
-        "no-restricted-syntax": [
-            "error",
-            "SequenceExpression"
-        ],
         "no-unused-expressions": "off",
         "no-irregular-whitespace": "error",
         "no-unexpected-multiline":"error",

@@ -1,12 +1,12 @@
-import { isArray, isObject, valueOf } from "../utils";
-import { XsHeaderImpl } from "../typedef";
+import { isArray, isObject, valueOf } from "./utils";
+import { XsHeaderImpl } from "./typedef";
 
 export const contentType = {
   contentType: "Content-Type",
   search: "application/x-www-form-urlencoded; charset=UTF-8",
   json: "application/json; charset=UTF-8",
   text: "text/plain;charset=UTF-8",
-  isJSON(src?:string) {
+  isJSON(src?: string) {
     return src?.includes("application/json");
   }
 };
@@ -58,7 +58,11 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
         init = Object.entries(init);
       // eslint-disable-next-line
       case isArray(init):
-        initialize = (init as Array<[string, string]>).reduce((record, entries) => (record[toCamelCase(entries.shift())] = entries.shift()), {});
+        initialize = (init as Array<[string, string]>).reduce(
+          function each(record, entries) {
+            return (record[toCamelCase(entries.shift())] = entries.pop(), record);
+          },
+          {});
         break;
       default:
         initialize = {};

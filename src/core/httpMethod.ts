@@ -1,12 +1,13 @@
 
 import { exectionOfSingleRequest } from "./request";
-import { HttpMethod, Method } from "../typedef";
+import { HttpMethod, Method, RequestInterface } from "../typedef";
 import mergeConfig from "./merge";
 
 function factoryForHttpMethod(method: Method): HttpMethod {
-  return (function httpMethod(url, options) {
-    return exectionOfSingleRequest(mergeConfig(url, options, method));
-  }) as HttpMethod;
+
+  const httpMethod = (<T = any>(url: string | RequestInterface, options: RequestInterface) => exectionOfSingleRequest<T>(mergeConfig(url, options, method))) as HttpMethod;
+
+  return httpMethod;
 }
 
 export const Get = factoryForHttpMethod("get");

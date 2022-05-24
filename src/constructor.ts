@@ -1,17 +1,22 @@
 import mergeConfig from "./core/merge";
-import { UseMidwareCallback, Method, RequestInterface, XsHeaderImpl, HttpMethod, CustomRequest } from "./typedef";
-import { isObject } from "./utils";
-import { RecordInterface } from "./parts/define";
+import { RequestUseCallback, Method, RequestInterface, XsHeaderImpl, HttpMethod, CustomRequest } from "./typedef";
+import { copyTo, forEach, isNil, isObject, asyncReject, asyncResolve } from "./utils";
+import { defineInterface, DefineMethod, RecordInterface } from "./define";
 import HttpXsDefaultProto from "./proto";
+import { exectionOfSingleRequest } from "./core/request";
+import XsCancel from "./cancel";
+import XsHeaders, { contentType } from "./headers";
+import retry from "./retry";
+import { asyncIterable } from "./asyncIterator";
 
 const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ] as Method[];
 
-interface DefaultConfig {
+interface RequestInstanceInterface {
 
   /**
    * 实例拦截器
    */
-  interceptor?: UseMidwareCallback[];
+  interceptors?: RequestUseCallback<any>[];
 
   /**
    * 共享headers
@@ -44,16 +49,18 @@ interface DefaultConfig {
   customRequest?: CustomRequest;
 }
 
-function mergeDefaultInceConfig(defaultConfig: DefaultConfig, customReq: RequestInterface) {
+function mergeDefaultInceConfig(requestInstanceInterface: RequestInstanceInterface, customReq: RequestInterface) {
 
-  let { headers, baseUrl = "" } = defaultConfig;
+  let { headers, baseUrl = "" } = requestInstanceInterface;
 
   // header
-  customReq.headers = new HttpXsDefaultProto.XsHeaders(customReq.headers);
+  if (!isNil(requestInstanceInterface.headers)) {
+    customReq.headers = new XsHeaders(customReq.headers);
 
-  (headers as XsHeaderImpl).forEach(function each(val, key) {
-    (customReq.headers as XsHeaderImpl).set(key, val);
-  });
+    (headers as XsHeaderImpl).forEach(function each(val, key) {
+      (customReq.headers as XsHeaderImpl).set(key, val);
+    });
+  }
 
   // url
   customReq.url = baseUrl + customReq.url.replace(/^\/*/, "/");
@@ -71,113 +78,136 @@ function mergeDefaultInceConfig(defaultConfig: DefaultConfig, customReq: Request
 
     del = existsInterceptor = null;
     return r;
-  })) as UseMidwareCallback;
+  })) as RequestUseCallback;
 
   // use
-  if (Array.isArray(defaultConfig.interceptor)) {
-    customReq.interceptor = defaultConfig.interceptor.concat(del, existsInterceptor).filter(Boolean);
+  if (Array.isArray(requestInstanceInterface.interceptors)) {
+    customReq.interceptor = requestInstanceInterface.interceptors.concat(del, existsInterceptor).filter(Boolean);
   }
-
-  if (typeof defaultConfig.responseType === "string" && typeof customReq.responseType !== "string") {
-    customReq.responseType = defaultConfig.responseType;
+  if (typeof requestInstanceInterface.responseType === "string" && typeof customReq.responseType !== "string") {
+    customReq.responseType = requestInstanceInterface.responseType;
   }
-
-  if (typeof defaultConfig.requestMode === "string" && typeof defaultConfig.requestMode !== "string") {
-    customReq.requestMode = defaultConfig.requestMode;
+  if (typeof requestInstanceInterface.requestMode === "string" && typeof customReq.requestMode !== "string") {
+    customReq.requestMode = requestInstanceInterface.requestMode;
   }
-
-  if (typeof defaultConfig.customRequest === "function" && typeof customReq.customRequest !== "function") {
-    customReq.customRequest = defaultConfig.customRequest;
+  if (typeof requestInstanceInterface.customRequest === "function" && typeof customReq.customRequest !== "function") {
+    customReq.customRequest = requestInstanceInterface.customRequest;
   }
 
   return customReq;
 }
 
-function resolveDefaultConfig(defaultConfig?: DefaultConfig) {
+function resolveDefaultConfig(requestInstanceInterface?: RequestInstanceInterface) {
 
-  if (!isObject(defaultConfig)) {
-    defaultConfig = {};
+  if (!isObject(requestInstanceInterface)) {
+    requestInstanceInterface = {};
+  }
+  if (typeof requestInstanceInterface.baseUrl === "string") {
+    requestInstanceInterface.baseUrl = requestInstanceInterface.baseUrl.replace(/[?/]*$/, "");
+  }
+  /* eslint-disable eqeqeq */
+  if (requestInstanceInterface.headers != null) {
+    requestInstanceInterface.headers = new XsHeaders(requestInstanceInterface.headers);
   }
 
-  defaultConfig.headers = new HttpXsDefaultProto.XsHeaders(defaultConfig.headers);
-
-  !(defaultConfig.headers.has(HttpXsDefaultProto.contentType.contentType)) && defaultConfig.headers.set(HttpXsDefaultProto.contentType.contentType, HttpXsDefaultProto.contentType.search);
-
-  if (typeof defaultConfig.baseUrl === "string") {
-    defaultConfig.baseUrl = defaultConfig.baseUrl.replace(/[?/]*$/, "");
-  }
-
-  return defaultConfig;
+  return requestInstanceInterface;
 }
 
 interface UseFunction<
-  T,
-  F extends (...arg: Parameters<UseMidwareCallback>) => ReturnType<UseMidwareCallback> = (...arg: Parameters<UseMidwareCallback>) => ReturnType<UseMidwareCallback>
+  R = Instance
   > {
-  (fn: F): T;
-  (fns: F[]): T;
-  (...fns: F[]): T;
-  delete(fn: F): boolean;
+  <T = any>(fn: RequestUseCallback<T>): R;
+  <T = any>(fns: RequestUseCallback<T>[]): R;
+  <T = any>(...fns: RequestUseCallback<T>[]): R;
+  delete(fn: RequestUseCallback<any>): boolean;
 }
 
-type Instance = typeof HttpXsDefaultProto & { [key in Method]: HttpMethod } & { use: UseFunction<Instance> };
+type Instance = Omit<
+  typeof HttpXsDefaultProto, "defineInterface"> &
+  { [key in Method]: HttpMethod } &
+{
+  use: UseFunction;
+  defineInterface: <T extends RecordInterface = RecordInterface >(apiDefine: T) => DefineMethod<T>;
+};
 
-function createInstance(defaultInstaceConfig?: DefaultConfig): Instance {
+function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instance {
 
   const fullInstceConf = resolveDefaultConfig(defaultInstaceConfig);
   const instce = Object.create(null);
 
-  instce.defaultConfig = fullInstceConf;
+  instce.RequestInstanceInterface = fullInstceConf;
 
-  instce.use = function use(...fns: UseMidwareCallback[]) {
-    let uses = instce.defaultConfig.interceptor;
+  instce.use = function use(...fns: RequestUseCallback[]) {
+    let uses = instce.RequestInstanceInterface.interceptors;
 
     if (!Array.isArray(uses)) {
-      uses = instce.defaultConfig.interceptor = [];
+      uses = instce.RequestInstanceInterface.interceptors = [];
     }
 
-    uses.push(...fns.flat(10));
+    let queue = [ ...fns ];
+
+    while (queue.length > 0) {
+      const fn = queue[0];
+
+      if (typeof fn === "function") {
+        uses.push(fn);
+      }
+      else {
+        queue.unshift(...fn as RequestUseCallback[]);
+      }
+      queue.shift();
+    }
+
     return this;
   };
 
-  instce.use.delete = function deleteUseFunction(fn: UseMidwareCallback) {
-    let used = instce.defaultConfig.interceptor;
+  instce.use.delete = function deleteUseFunction(fn: RequestUseCallback) {
+    let used = instce.RequestInstanceInterface.interceptors;
     if (!Array.isArray(used)) {
       return false;
     }
-    let deletion = used.splice(used.findIndex(fn), 1);
+    let deletion = used.splice(used.indexOf(fn), 1);
     return deletion.length !== 0;
   };
 
   methodNamed.forEach(function each(method) {
-    instce[method] = function HttpMethod(this: { defaultConfig: DefaultConfig }, url, opts) {
+    instce[method] = function HttpMethod(this: { RequestInstanceInterface: RequestInstanceInterface }, url, opts) {
       // ! 会覆盖
       // ? merge baseConfig
-      let finish = mergeDefaultInceConfig(this.defaultConfig, mergeConfig(url, opts));
-      finish.method = method;
-      return instce.request(finish);
+      return instce.request(mergeConfig(url, opts, method));
     };
   });
 
   instce.defineInterface = function (apiDefine: RecordInterface) {
-    return HttpXsDefaultProto.defineInterface(instce, apiDefine);
+    return defineInterface(instce.request, apiDefine);
   };
 
   instce.setProfix = function (nextUrl: string, replace = false) {
     if (replace) {
-      this.defaultConfig.baseUrl = nextUrl;
+      this.RequestInstanceInterface.baseUrl = nextUrl;
       return;
     }
 
     fullInstceConf.baseUrl += nextUrl.replace(/^\/*/, "/");
   };
 
+  instce.request = function instanceRequest(config: RequestInterface) {
+    let finish = mergeDefaultInceConfig(instce.RequestInstanceInterface, config);
+    return exectionOfSingleRequest(finish);
+  };
 
-  Object.setPrototypeOf(instce, HttpXsDefaultProto);
+  instce.asyncIterable = asyncIterable;
+  instce.XsCancel = XsCancel;
+  instce.XsHeaders = XsHeaders;
+  instce.contentType = { ...contentType };
+  instce.resolve = asyncResolve;
+  instce.resject = asyncReject;
+  instce.copyTo = copyTo;
+  instce.each = forEach;
+  instce.retry = retry;
 
   return instce;
 }
-
 
 export { createInstance };
 export default createInstance;

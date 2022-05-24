@@ -36,6 +36,11 @@ export interface RequestInterface {
    */
   query?: Record<string, unknown> | string | URLSearchParams
   /**
+   * queryMatch - 动态路由
+   *    /query/{id} -> /query/123
+   */
+  queryMatch?: (string | boolean | number)[]
+  /**
    * body - fetch、xhr、node 平台支持的请求体
    */
   body?: string | URLSearchParams | Blob | BufferSource | FormData | null | Record<string, unknown> | Uint8Array | ReadStream | Buffer
@@ -187,7 +192,7 @@ interface DefaultConfig {
   /**
    * 实例拦截器
    */
-  interceptor?: UseMidware[];
+  interceptors?: UseMidware[];
   /**
    * 共享headers
    */
@@ -259,7 +264,7 @@ const xs = createInstance({});
 ### 请求、响应预处理
 ```ts
 
-const xs = create({});
+const xs = createInstance({});
 
 xs.use(
   (req, next) => {

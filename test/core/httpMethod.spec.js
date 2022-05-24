@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Get, Head, Patch,Options, Put, Delete, Post } from "../../src/core/httpMethod";
-import XsHeaders from "../../src/parts/headers";
+import XsHeaders from "../../src/headers";
 
 const localUrl = "http://127.0.0.1:4096";
 

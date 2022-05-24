@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { urlQuerySerialize, transfromResponse, encode, transfromRequestPayload } from "../../src/core/transform";
-import XsHeaders, { contentType } from "../../src/parts/headers";
+import XsHeaders, { contentType } from "../../src/headers";
 
 describe("text:Transfrom", () => {
 

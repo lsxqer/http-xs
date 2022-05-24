@@ -1,8 +1,8 @@
-import { RequestInterface, XsHeaderImpl } from "../../typedef";
-import { XsError, validateFetchStatus, ResponseStruct } from "../complete";
-import { promiseReject, promiseResolve } from "../../utils";
-import XsHeaders from "../../parts/headers";
-import XsCancel from "../../cancel";
+import { RequestInterface, XsHeaderImpl } from "../typedef";
+import { XsError, validateFetchStatus, ResponseStruct } from "../core/complete";
+import { asyncReject, asyncResolve } from "../utils";
+import XsHeaders from "../headers";
+import XsCancel from "../cancel";
 
 const each = (init, line) => {
   let [ key, val ] = line.split(":");
@@ -24,7 +24,7 @@ function parserRawHeader(xhr: XMLHttpRequest) {
 
 export function xhrRequest<T = any>(opts: RequestInterface): Promise<ResponseStruct<T>> {
 
-  let xhr = new XMLHttpRequest();
+  let xhr = new globalThis.XMLHttpRequest();
 
   if (typeof opts.responseType === "string") {
     xhr.responseType = opts.responseType.toLocaleLowerCase() as XMLHttpRequestResponseType;
@@ -131,7 +131,7 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
     header = header.raw();
   }
 
-  let req = new Request(url, {
+  let req = new globalThis.Request(url, {
     cache: opts.cache,
     credentials: opts.credentials,
     integrity: opts.integrity,
@@ -149,7 +149,7 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
   let readBody;
 
   try {
-    readBody = await fetch(req);
+    readBody = await globalThis.fetch(req);
 
     let body = readBody.clone();
     let response = await readBody[opts.responseType]().catch(() => body.text());
@@ -158,7 +158,7 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
     body.headers.forEach((val, key) => xsHeader.set(key, val));
 
     return new ResponseStruct<T>(
-      validateFetchStatus(body.status, promiseResolve, promiseReject),
+      validateFetchStatus(body.status, asyncResolve, asyncReject),
       response,
       body.status,
       body.statusText,
@@ -172,8 +172,8 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
 
     // fetch 取消请求时的错误对象 —> DOMException
     if (exx instanceof DOMException) {
-      return promiseReject(new XsError(0, `Http-xs: Client Abort ${exx.toString()}`, opts, header, "abort"));
+      return asyncReject(new XsError(0, `Http-xs: Client Abort ${exx.toString()}`, opts, header, "abort"));
     }
-    return promiseReject(new XsError(0, `Http-xs: ${(exx as Error).message}`, opts, header, "error"));
+    return asyncReject(new XsError(0, `Http-xs: ${(exx as Error).message}`, opts, header, "error"));
   }
 }

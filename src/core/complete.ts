@@ -1,4 +1,4 @@
-import XsHeaders from "../parts/headers";
+import XsHeaders from "../headers";
 import { RequestInterface, XsHeaderImpl } from "../typedef";
 import mergeConfig from "./merge";
 import { exectionOfSingleRequest } from "./request";

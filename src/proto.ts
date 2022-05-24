@@ -1,10 +1,10 @@
-import { asyncIterable } from "./parts/asyncIterator";
+import { asyncIterable } from "./asyncIterator";
 import { exectionOfSingleRequest } from "./core/request";
 import XsCancel from "./cancel";
-import XsHeaders, { contentType } from "./parts/headers";
-import { defineInterface, deriveInterfaceWrapper } from "./parts/define";
-import { copyTo, forEach, promiseReject, promiseResolve } from "./utils";
-import retry from "./parts/retry";
+import XsHeaders, { contentType } from "./headers";
+import { defineInterface, deriveInterfaceWrapper } from "./define";
+import { copyTo, forEach, asyncReject, asyncResolve } from "./utils";
+import retry from "./retry";
 
 const HttpXsDefaultProto = {
   asyncIterable: asyncIterable,
@@ -12,8 +12,8 @@ const HttpXsDefaultProto = {
   XsCancel: XsCancel,
   XsHeaders: XsHeaders,
   contentType: { ...contentType },
-  resolve: promiseResolve,
-  reject: promiseReject,
+  resolve: asyncResolve,
+  reject: asyncReject,
   copyTo: copyTo,
   each: forEach,
   retry: retry,

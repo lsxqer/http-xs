@@ -1,20 +1,20 @@
 import { transfromRequestPayload, urlQuerySerialize } from "./transform";
 import { RequestInterface } from "../typedef";
-import { isUndef } from "../utils";
-import { XsHeaders } from "../parts/headers";
+import { isNil } from "../utils";
+import { XsHeaders } from "../headers";
 import { transfromResponse } from "./transform";
 import { compose } from "./compose";
-import dispatchRequest from "./platform/dispatchRequest";
+import dispatchRequest from "../platform/dispatchRequest";
 import { ResponseStruct } from "./complete";
 
-export function exectionOfSingleRequest(completeOpts: RequestInterface): ResponseStruct {
+export function exectionOfSingleRequest<T = any>(completeOpts: RequestInterface): Promise<ResponseStruct<T>>{
 	return compose([ completeOpts.interceptor ].flat(3).filter(Boolean))(completeOpts, async function requestExection(options: RequestInterface) {
 
-		options.url = urlQuerySerialize(options.url, options.query);
+		options.url = urlQuerySerialize(options.url, options);
 
 		options.headers = new XsHeaders(options.headers);
 
-		if (!isUndef(options.body)) {
+		if (!isNil(options.body)) {
 			options.body = transfromRequestPayload(options);
 		}
 
@@ -25,7 +25,7 @@ export function exectionOfSingleRequest(completeOpts: RequestInterface): Respons
 
 		// responType为空时设置默认responseType
 		if (options.requestMode === "fetch") {
-			if (isUndef(responseType) || responseType.trim().length === 0) {
+			if (isNil(responseType) || responseType.trim().length === 0) {
 				responseType = options.responseType = "json";
 			}
 		}

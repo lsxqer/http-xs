@@ -1,7 +1,6 @@
 
-export const promiseResolve = Promise.resolve.bind(Promise);
-
-export const promiseReject = Promise.reject.bind(Promise);
+export const asyncResolve = Promise.resolve.bind(Promise);
+export const asyncReject = Promise.reject.bind(Promise);
 
 
 const toTypeString = Object.prototype.toString;
@@ -16,8 +15,8 @@ export function isObject<T = Record<string, unknown>>(tar: unknown): tar is T {
   return hasInType<T>(tar, "Object");
 }
 
-export function isFunction<T = () => void>(tar: unknown): tar is T {
-  return tar instanceof Function;
+export function isFunction<T = (...args: any[]) => void>(tar: unknown): tar is T {
+  return typeof tar === "function";
 }
 
 export function isStream(tar: any) {
@@ -35,7 +34,7 @@ export function isAbsoluteURL(url: string) {
 }
 
 
-export function isUndef<T>(tar: T): tar is null {
+export function isNil<T>(tar: T): tar is null {
   return tar === null || tar === undefined;
 }
 
@@ -46,7 +45,7 @@ export function isUndef<T>(tar: T): tar is null {
  * @description null undefined length size size() keys
  */
 export function isEmpty(tar: any): boolean {
-  if (isUndef(tar)) {
+  if (isNil(tar)) {
     return true;
   }
   if (Number.isInteger(tar.length)) {

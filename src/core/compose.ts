@@ -1,9 +1,9 @@
-import { RequestInterface, UseMidwareCallback } from "../typedef";
-import { promiseReject, promiseResolve } from "../utils";
+import { RequestInterface, RequestUseCallback } from "../typedef";
+import { asyncReject, asyncResolve } from "../utils";
 import { ResponseStruct } from "./complete";
 
 
-export function compose(fns: UseMidwareCallback[] = []) {
+export function compose(fns: RequestUseCallback[] = []) {
 
   return function execute(req: RequestInterface, finished: (req: RequestInterface) => Promise<ResponseStruct>) {
 
@@ -13,14 +13,14 @@ export function compose(fns: UseMidwareCallback[] = []) {
     function run(i: number) {
 
       let fn = fns[i];
-
+      
       let nextCallback = () => {
         nextCallback = null;
         return run(i + 1);
       };
 
       if (i <= index) {
-        return promiseReject(new Error("next() called"));
+        return asyncReject(new Error("next() called"));
       }
 
       if (fns.length === i) {
@@ -28,14 +28,15 @@ export function compose(fns: UseMidwareCallback[] = []) {
       }
 
       if (typeof fn !== "function") {
-        return promiseResolve(processNextArg);
+        return asyncResolve(processNextArg);
       }
 
-      return promiseResolve(fn(processNextArg, nextCallback))
+      return asyncResolve(fn(processNextArg, nextCallback) as any)
         .then(next => {
           if (next !== undefined) {
             processNextArg = next as any;
           }
+
           return typeof nextCallback === "function" ? nextCallback() : processNextArg;
         });
     }

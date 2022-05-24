@@ -1,7 +1,7 @@
 
-import { RequestInterface, ResponseStruct } from "../../typedef";
+import { RequestInterface, ResponseStruct } from "../typedef";
 import { fetchRequest, xhrRequest } from "./browser";
-import { isNode } from "../../utils";
+import { isNode } from "../utils";
 import { nodeRequest } from "./http";
 
 /**

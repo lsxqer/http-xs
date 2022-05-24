@@ -1,5 +1,5 @@
 
-import { ResponseStruct, PromiseFunction } from "../typedef";
+import { ResponseStruct, PromiseFunction } from "./typedef";
 
 function executionRequest<T>(fn: PromiseFunction<T>, complete: (res: T) => void) {
   return fn().then(complete, complete);

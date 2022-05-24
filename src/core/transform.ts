@@ -1,7 +1,7 @@
 import { isNode, isEmpty, valueOf } from "../utils";
 import { RequestInterface, XsHeaderImpl } from "../typedef";
-import { contentType } from "../parts/headers";
-import { forEach, isAbsoluteURL, isObject, isUndef } from "../utils";
+import { contentType } from "../headers";
+import { forEach, isAbsoluteURL, isObject, isNil } from "../utils";
 import { ResponseStruct } from "./complete";
 
 export function encode(input: string): string {
@@ -43,10 +43,11 @@ const querySerializerMap = {
         case "Object":
           val = JSON.stringify(val);
           break;
+        case "Date":
+          val = (val as Date).toISOString();
+          break;
         default:
           val = val.toString();
-
-          // wran to console
           break;
       }
 
@@ -57,15 +58,17 @@ const querySerializerMap = {
   }
 };
 
-export function urlQuerySerialize(originalUrl = "", sourceQuery: Record<string | number, unknown> | URLSearchParams | string) {
+export function urlQuerySerialize(originalUrl = "", opts: RequestInterface) {
+
+  let sourceQuery: Record<string | number, unknown> | URLSearchParams | string = opts.query;
 
   if (!isAbsoluteURL(originalUrl)) {
-    originalUrl = originalUrl.replace(/^\/*/, "/").replace(/\/*$/, "").replace(/\s*/g, "").replace(/#[\w\W]*/g, "");
+    originalUrl = originalUrl.replace(/^\/*/, "/").replace(/\/*$/, "").replace(/\s*/g, "");
   }
 
   let hasUrlInQuery = originalUrl.lastIndexOf("?") !== -1;
 
-  if (!isUndef(sourceQuery)) {
+  if (!isNil(sourceQuery)) {
     let nextQueryRaw = "";
 
     // query -> urlSearchParams
@@ -81,13 +84,34 @@ export function urlQuerySerialize(originalUrl = "", sourceQuery: Record<string |
     originalUrl += hasUrlInQuery ? "&" : `?${nextQueryRaw}`;
   }
 
+  let queryMatch = opts.queryMatch;
+
+  if (Array.isArray(queryMatch)) {
+    let matcherUrl = originalUrl.slice(0, originalUrl.indexOf("{") - 1);
+
+    let matcher = null;
+    let matchRe = /{[\w]+}/g;
+
+    let end = originalUrl.length;
+    let start =  end;
+
+    while ((matcher = matchRe.exec(originalUrl)) !== null) {
+      matcherUrl += `/${queryMatch.shift()}`;
+      start = matcher[0].length + matcher.index;
+      /* eslint-disable  @typescript-eslint/no-unused-vars  */
+      matcher = null;
+    }
+
+    originalUrl = matcherUrl + originalUrl.slice(start, end);
+  }
+
   return originalUrl;
 }
 
 export function transfromRequestPayload(opts: RequestInterface) {
   let body = opts.body;
 
-  // eslint-disable-next-line
+  /* eslint-disable eqeqeq */
   if (body == null) {
     return null;
   }
@@ -172,7 +196,8 @@ export function transfromResponse(responseStruct: ResponseStruct, responseType: 
       if (typeof response === "string" && ([ "text", "utf8" ].includes(responseType) === false)) {
         try {
           response = JSON.parse(response);
-        } catch (err) { }/* eslint-disable-line no-empty */
+          /* eslint-disable no-empty */
+        } catch (err) { }
       }
     }
   }

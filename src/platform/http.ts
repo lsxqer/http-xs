@@ -1,10 +1,10 @@
-import XsHeaders from "../../parts/headers";
-import { XsError, ResponseStruct } from "../complete";
+import XsHeaders from "../headers";
+import { XsError, validateFetchStatus, ResponseStruct } from "../core/complete";
 import { Stream } from "stream";
-import { ClientRequestArgs, IncomingMessage, ClientRequest, RequestInterface, XsHeaderImpl } from "../../typedef";
-import { isStream } from "../../utils";
-import { promiseReject } from "../../utils";
-import { validateFetchStatus } from "../complete";
+import { ClientRequestArgs, RequestInterface, XsHeaderImpl } from "../typedef";
+import type { ClientRequest, IncomingMessage } from "../typedef";
+import { isStream } from "../utils";
+import { asyncReject } from "../utils";
 
 function getRequest(type: "http" | "https"): ClientRequest {
   if (type === "http") {
@@ -27,7 +27,7 @@ export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseSt
       requestOptions = require("url").urlToHttpOptions(new URL(opts.url));
     } catch (exx) {
       // handle parse url errx
-      return promiseReject(new XsError(0, `Http-xs: Parser Url Error ${exx.toString()}`,  opts, new XsHeaders(), "error"));
+      return asyncReject(new XsError(0, `Http-xs: Parser Url Error ${exx.toString()}`, opts, new XsHeaders(), "error"));
     }
   }
 
