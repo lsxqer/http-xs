@@ -244,20 +244,25 @@ import HttpXs, { HttpXs } from "http-xs";
 
 const xs = createInstance({});
 
-  xs.get("/query?id=1")
-        .then(res => /* response... */);
-
-  xs.get("/query" { query: {id:10} })
+xs.get("/query?id=1")
       .then(res => /* response... */);
 
-  xs.post("/save-user",{ body: {name:"大炮"}})
+xs.get("/query" { query: {id:10} })
     .then(res => /* response... */);
 
-  xs.post({
-    url:"svae-user",
-    body:new FormData()
-  })
-    .then(res => /* response... */);
+xs.post("/save-user",{ body: {name:"大炮"}})
+  .then(res => /* response... */);
+
+xs.post({
+  url:"svae-user",
+  body:new FormData()
+})
+  .then(res => /* response... */);
+
+// url match params
+
+// /query/{id} -> /query/1
+xs.get("/query/{id}", {queryMatch: [ 1 ]});
 
 ```
 
