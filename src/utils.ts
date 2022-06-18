@@ -27,7 +27,7 @@ export function isArray<R = any, T extends Array<R> = Array<R>>(tar: unknown): t
   return Array.isArray(tar);
 }
 
-export const isNode = typeof process !== "undefined" && valueOf(process) === "process";
+export const isNodePlatform = typeof process !== "undefined" && valueOf(process) === "process";
 
 export function isAbsoluteURL(url: string) {
   return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
@@ -79,11 +79,4 @@ export function forEach<T extends Record<string, unknown> | Array<unknown> = any
     each(key, val);
   }
 
-}
-
-
-export function copyTo(source, target) {
-  forEach(source, function each(key, val) {
-    target[key] = val;
-  });
 }

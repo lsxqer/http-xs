@@ -1,6 +1,6 @@
 import mergeConfig from "./core/merge";
-import { RequestUseCallback, Method, RequestInterface, XsHeaderImpl, HttpMethod, CustomRequest } from "./typedef";
-import { copyTo, forEach, isNil, isObject, asyncReject, asyncResolve } from "./utils";
+import { RequestUseCallback, Method, RequestInterface, HttpMethod, CustomRequest } from "./typedef";
+import { forEach, isNil, isObject, asyncReject, asyncResolve } from "./utils";
 import { defineInterface, DefineMethod, RecordInterface } from "./define";
 import HttpXsDefaultProto from "./proto";
 import { exectionOfSingleRequest } from "./core/request";
@@ -49,17 +49,19 @@ interface RequestInstanceInterface {
   customRequest?: CustomRequest;
 }
 
-function mergeDefaultInceConfig(requestInstanceInterface: RequestInstanceInterface, customReq: RequestInterface) {
+function mergeDefaultInceConfig(instReq: RequestInstanceInterface, customReq: RequestInterface) {
 
-  let { headers, baseUrl = "" } = requestInstanceInterface;
+  let { headers, baseUrl = "" } = instReq;
 
-  // header
-  if (!isNil(requestInstanceInterface.headers)) {
-    customReq.headers = new XsHeaders(customReq.headers);
+  // 实例headers属性不为空
+  if (!isNil(headers)) {
+    let nextHeader = new XsHeaders(headers);
 
-    (headers as XsHeaderImpl).forEach(function each(val, key) {
-      (customReq.headers as XsHeaderImpl).set(key, val);
+    XsHeaders.forEach(customReq.headers, (k, v) => {
+      nextHeader.set(k, v);
     });
+
+    customReq.headers = nextHeader;
   }
 
   // url
@@ -81,17 +83,17 @@ function mergeDefaultInceConfig(requestInstanceInterface: RequestInstanceInterfa
   })) as RequestUseCallback;
 
   // use
-  if (Array.isArray(requestInstanceInterface.interceptors)) {
-    customReq.interceptor = requestInstanceInterface.interceptors.concat(del, existsInterceptor).filter(Boolean);
+  if (Array.isArray(instReq.interceptors)) {
+    customReq.interceptor = instReq.interceptors.concat(del, existsInterceptor ?? []);
   }
-  if (typeof requestInstanceInterface.responseType === "string" && typeof customReq.responseType !== "string") {
-    customReq.responseType = requestInstanceInterface.responseType;
+  if (typeof instReq.responseType === "string" && typeof customReq.responseType !== "string") {
+    customReq.responseType = instReq.responseType;
   }
-  if (typeof requestInstanceInterface.requestMode === "string" && typeof customReq.requestMode !== "string") {
-    customReq.requestMode = requestInstanceInterface.requestMode;
+  if (typeof instReq.requestMode === "string" && typeof customReq.requestMode !== "string") {
+    customReq.requestMode = instReq.requestMode;
   }
-  if (typeof requestInstanceInterface.customRequest === "function" && typeof customReq.customRequest !== "function") {
-    customReq.customRequest = requestInstanceInterface.customRequest;
+  if (typeof instReq.customRequest === "function" && typeof customReq.customRequest !== "function") {
+    customReq.customRequest = instReq.customRequest;
   }
 
   return customReq;
@@ -100,16 +102,12 @@ function mergeDefaultInceConfig(requestInstanceInterface: RequestInstanceInterfa
 function resolveDefaultConfig(requestInstanceInterface?: RequestInstanceInterface) {
 
   if (!isObject(requestInstanceInterface)) {
-    requestInstanceInterface = {};
+    return {};
   }
+
   if (typeof requestInstanceInterface.baseUrl === "string") {
     requestInstanceInterface.baseUrl = requestInstanceInterface.baseUrl.replace(/[?/]*$/, "");
   }
-  /* eslint-disable eqeqeq */
-  if (requestInstanceInterface.headers != null) {
-    requestInstanceInterface.headers = new XsHeaders(requestInstanceInterface.headers);
-  }
-
   return requestInstanceInterface;
 }
 
@@ -135,13 +133,13 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
   const fullInstceConf = resolveDefaultConfig(defaultInstaceConfig);
   const instce = Object.create(null);
 
-  instce.RequestInstanceInterface = fullInstceConf;
+  instce.baseRequestConf = fullInstceConf;
 
   instce.use = function use(...fns: RequestUseCallback[]) {
-    let uses = instce.RequestInstanceInterface.interceptors;
+    let uses = instce.baseRequestConf.interceptors;
 
     if (!Array.isArray(uses)) {
-      uses = instce.RequestInstanceInterface.interceptors = [];
+      uses = instce.baseRequestConf.interceptors = [];
     }
 
     let queue = [ ...fns ];
@@ -162,7 +160,7 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
   };
 
   instce.use.delete = function deleteUseFunction(fn: RequestUseCallback) {
-    let used = instce.RequestInstanceInterface.interceptors;
+    let used = instce.baseRequestConf.interceptors;
     if (!Array.isArray(used)) {
       return false;
     }
@@ -171,9 +169,7 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
   };
 
   methodNamed.forEach(function each(method) {
-    instce[method] = function HttpMethod(this: { RequestInstanceInterface: RequestInstanceInterface }, url, opts) {
-      // ! 会覆盖
-      // ? merge baseConfig
+    instce[method] = function HttpMethod(this: { baseRequestConf: RequestInstanceInterface }, url, opts) {
       return instce.request(mergeConfig(url, opts, method));
     };
   });
@@ -184,7 +180,7 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
 
   instce.setProfix = function (nextUrl: string, replace = false) {
     if (replace) {
-      this.RequestInstanceInterface.baseUrl = nextUrl;
+      instce.baseRequestConf.baseUrl = nextUrl;
       return;
     }
 
@@ -192,7 +188,7 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
   };
 
   instce.request = function instanceRequest(config: RequestInterface) {
-    let finish = mergeDefaultInceConfig(instce.RequestInstanceInterface, config);
+    let finish = mergeDefaultInceConfig(instce.baseRequestConf, config);
     return exectionOfSingleRequest(finish);
   };
 
@@ -202,7 +198,6 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
   instce.contentType = { ...contentType };
   instce.resolve = asyncResolve;
   instce.resject = asyncReject;
-  instce.copyTo = copyTo;
   instce.each = forEach;
   instce.retry = retry;
 

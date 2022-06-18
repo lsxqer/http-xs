@@ -1,7 +1,7 @@
 
 import { RequestInterface, ResponseStruct } from "../typedef";
 import { fetchRequest, xhrRequest } from "./browser";
-import { isNode } from "../utils";
+import { isNodePlatform } from "../utils";
 import { nodeRequest } from "./http";
 
 /**
@@ -16,7 +16,7 @@ export default function dispatchRequest(config: RequestInterface): <T = any>(opt
     return config.customRequest;
   }
 
-  if (isNode) {
+  if (isNodePlatform) {
     return nodeRequest;
   }
   else if (

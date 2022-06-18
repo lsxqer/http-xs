@@ -1,4 +1,5 @@
 import { exectionOfSingleRequest } from "src/core/request";
+import mergeConfig from "./core/merge";
 import XsHeaders from "./headers";
 import { HttpMethod, Method, RequestInterface, ResponseStruct } from "./typedef";
 import { isNil } from "./utils";
@@ -20,6 +21,9 @@ interface DefineExecute {
     nextConfig?: Exclude<Partial<RequestInterface>, "url">
   ): Promise<S>;
   executing: boolean;
+  request: <S = ResponseStruct<any>>(
+    nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method">
+  ) => Promise<S>;
 }
 
 export type DefineMethod<
@@ -28,7 +32,7 @@ export type DefineMethod<
     readonly [k in keyof T]: DefineExecute;
   };
 
-export type MethodStore = {
+export type RequestInput = {
   [k in Method]?: HttpMethod;
 } | typeof exectionOfSingleRequest;
 
@@ -84,7 +88,7 @@ const notRequestBody = "get,head,trace";
 export function defineInterface<
   T extends RecordInterface = RecordInterface,
   R extends DefineMethod<T> = DefineMethod<T>
->(exec: MethodStore, record: T): R {
+>(exec: RequestInput, record: T): R {
 
   let entries = Object.entries(record);
   let define = {};
@@ -101,17 +105,13 @@ export function defineInterface<
         let nextHeaders: XsHeaders = null;
 
         if (!(isNil(config.headers) && isNil(def.headers))) {
-          nextHeaders = new XsHeaders(config.headers);
-          let defaultHeaders = new XsHeaders(def.headers);
-          defaultHeaders.forEach((val, key) => nextHeaders.append(key, val));
+          nextHeaders = new XsHeaders(def.headers);
+          XsHeaders.forEach(config.headers, (k, v) => {
+            nextHeaders.set(k, v);
+          });
         }
 
-        const defaultsKeys = Object.keys(def);
-
-        while (defaultsKeys.length > 0) {
-          let key = defaultsKeys.shift();
-          config[key] = def[key];
-        }
+        config = mergeConfig(nextConfig, def);
 
         nextHeaders !== null && (config.headers = nextHeaders);
 
@@ -132,6 +132,13 @@ export function defineInterface<
       }
     }) as DefineExecute;
 
+    executor.request = (function request(nextConfig?: RequestInterface) {
+      let merged = mergeConfig(nextConfig ?? {}, def);
+      merged.url = def.url;
+      merged.method = def.method;
+      return (typeof exec === "function" ? exec(merged) : exec[method](merged));
+    } as any);
+
     define[key] = executor;
   }
 
@@ -141,8 +148,8 @@ export function defineInterface<
 /**
  * 接受一个实例，返回一个函数，函数中使用实例中的方法
  * @param store {get, post, put...}
- * @returns defineInterface
+ * @returns defineInterface.bind(this,store)
  */
-export function deriveInterfaceWrapper(this: ThisType<any>, store: MethodStore) {
+export function applyRequest(this: ThisType<any>, store: RequestInput) {
   return defineInterface.bind(this, store);
 }

@@ -1,11 +1,11 @@
-import { isArray, isObject, valueOf } from "./utils";
+import {  isNil, isObject, valueOf } from "./utils";
 import { XsHeaderImpl } from "./typedef";
 
 export const contentType = {
   contentType: "Content-Type",
   search: "application/x-www-form-urlencoded; charset=UTF-8",
   json: "application/json; charset=UTF-8",
-  text: "text/plain;charset=UTF-8",
+  text: "text/plain; charset=UTF-8",
   isJSON(src?: string) {
     return src?.includes("application/json");
   }
@@ -42,34 +42,33 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
 
   constructor(init?: Record<string, string> | [string, string][] | XsHeaderImpl) {
 
-    let initialize: [string, string][] | Record<string, string>;
+    let initialize: Record<string, string> = {};
 
-    switch (true) {
-      case init instanceof XsHeaders:
-        initialize = (init as XsHeaders).raw();
-        break;
-      case valueOf(init) === "Headers": {
-        let headers = init as Headers;
-        initialize = {};
-        headers.forEach((val, key) => initialize[toCamelCase(key)] = val);
-        break;
-      }
-      case isObject(init):
-        init = Object.entries(init);
-      // eslint-disable-next-line
-      case isArray(init):
-        initialize = (init as Array<[string, string]>).reduce(
-          function each(record, entries) {
-            return (record[toCamelCase(entries.shift())] = entries.pop(), record);
-          },
-          {});
-        break;
-      default:
-        initialize = {};
-        break;
-    }
+    XsHeaders.forEach(init, (k, v) => {
+      initialize[k] = v;
+    });
 
     super(initialize);
+  }
+
+  static forEach(init: Record<string, string> | [string, string][] | XsHeaderImpl, each: (key: string, val: string) => void) {
+    if (isNil(init)) {
+      return;
+    }
+
+    if (valueOf(init) === "Headers" || init instanceof XsHeaders) {
+      (init as XsHeaderImpl).forEach((v, k) => each(toCamelCase(k), v));
+      return;
+    }
+    if (isObject(init)) {
+      init = Object.entries(init);
+    }
+
+    if (typeof init?.forEach === "function") {
+      (init as Array<[string, string]>).forEach(([ k, v ]) => {
+        each(toCamelCase(k), v);
+      });
+    }
   }
 
   toString(): string {

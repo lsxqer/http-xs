@@ -1,4 +1,4 @@
-import { isNode, isEmpty, valueOf } from "../utils";
+import { isNodePlatform, isEmpty, valueOf } from "../utils";
 import { RequestInterface, XsHeaderImpl } from "../typedef";
 import { contentType } from "../headers";
 import { forEach, isAbsoluteURL, isObject, isNil } from "../utils";
@@ -93,7 +93,7 @@ export function urlQuerySerialize(originalUrl = "", opts: RequestInterface) {
     let matchRe = /{[\w]+}/g;
 
     let end = originalUrl.length;
-    let start =  end;
+    let start = end;
 
     while ((matcher = matchRe.exec(originalUrl)) !== null) {
       matcherUrl += `/${queryMatch.shift()}`;
@@ -133,8 +133,7 @@ export function transfromRequestPayload(opts: RequestInterface) {
         body = new URLSearchParams(body as URLSearchParams | Record<string, string>).toString();
       }
 
-      if (isNode) {
-        // node环境转换为buffer传输
+      if (isNodePlatform) {
         body = Buffer.from(body, "utf-8");
       }
 
@@ -145,7 +144,7 @@ export function transfromRequestPayload(opts: RequestInterface) {
       replaceContentType = contentType.text;
       break;
     case "arraybuffer": {
-      if (isNode) {
+      if (isNodePlatform) {
         body = Buffer.from(new Uint8Array(body as ArrayBuffer));
       }
       break;
@@ -177,15 +176,14 @@ export function transfromResponse(responseStruct: ResponseStruct, responseType: 
       response = new Uint8Array(response);
       break;
     case "arraybuffer":
-      if (isNode) {
+      if (isNodePlatform) {
         response = response.buffer;
       }
       break;
     case "text":
     case "utf8":
     case "json":
-      //  fetch 会默认选择会json, xhr对象支持响应json格式。所以在浏览器环境返回就可
-      if (!isNode) {
+      if (!isNodePlatform) {
         break;
       }
     /* eslint-disable no-fallthrough */

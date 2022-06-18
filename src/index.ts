@@ -4,7 +4,7 @@ import { Get, Post, Options, Put, Delete, Patch, Head } from "./core/httpMethod"
 import { toCamelCase, XsHeaders, contentType } from "./headers";
 import { exectionOfSingleRequest } from "./core/request";
 import XsCancel from "./cancel";
-import { deriveInterfaceWrapper, defineInterface } from "./define";
+import { applyRequest, defineInterface } from "./define";
 import { asyncResolve, asyncReject } from "./utils";
 import { asyncIterable } from "./asyncIterator";
 import retry from "./retry";
@@ -47,7 +47,7 @@ export {
 
   XsCancel,
 
-  deriveInterfaceWrapper, defineInterface,
+  applyRequest, defineInterface,
 
   asyncResolve,
   asyncReject
