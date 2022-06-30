@@ -19,7 +19,7 @@ interface RequestInstanceInterface {
   interceptors?: RequestUseCallback<any>[];
 
   /**
-   * 共享headers
+   * 实例共享headers
    */
   headers?: RequestInterface["headers"];
 
@@ -49,9 +49,11 @@ interface RequestInstanceInterface {
   customRequest?: CustomRequest;
 }
 
+const defaultMergeKeys = "responseType, customRequest, timeout, requestMode";
 function mergeDefaultInceConfig(instReq: RequestInstanceInterface, customReq: RequestInterface) {
 
   let { headers, baseUrl = "" } = instReq;
+  let keys = Object.keys(instReq).filter(key => defaultMergeKeys.includes(key));
 
   // 实例headers属性不为空
   if (!isNil(headers)) {
@@ -86,15 +88,13 @@ function mergeDefaultInceConfig(instReq: RequestInstanceInterface, customReq: Re
   if (Array.isArray(instReq.interceptors)) {
     customReq.interceptor = instReq.interceptors.concat(del, existsInterceptor ?? []);
   }
-  if (typeof instReq.responseType === "string" && typeof customReq.responseType !== "string") {
-    customReq.responseType = instReq.responseType;
-  }
-  if (typeof instReq.requestMode === "string" && typeof customReq.requestMode !== "string") {
-    customReq.requestMode = instReq.requestMode;
-  }
-  if (typeof instReq.customRequest === "function" && typeof customReq.customRequest !== "function") {
-    customReq.customRequest = instReq.customRequest;
-  }
+
+  keys.forEach(key => {
+    let customVal = customReq[key];
+    if (typeof customVal === "undefined" || customVal === null) {
+      customReq[key] = instReq[key];
+    }
+  });
 
   return customReq;
 }

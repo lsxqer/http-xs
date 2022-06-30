@@ -194,7 +194,7 @@ interface DefaultConfig {
    */
   interceptors?: UseMidware[];
   /**
-   * 共享headers
+   * 实例共享headers
    */
   headers?: RequestInterface["headers"];
   /**

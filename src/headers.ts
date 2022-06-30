@@ -1,4 +1,4 @@
-import {  isNil, isObject, valueOf } from "./utils";
+import { isNil, isObject, valueOf } from "./utils";
 import { XsHeaderImpl } from "./typedef";
 
 export const contentType = {
@@ -77,6 +77,12 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
 
   get [Symbol.toStringTag]() {
     return "XsHeaders";
+  }
+
+  *[Symbol.iterator]() {
+    for (let el of Object.entries(this.raw())) {
+      yield el;
+    }
   }
 
   raw(): Record<string, string> {

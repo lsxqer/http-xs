@@ -15,11 +15,10 @@ export default function dispatchRequest(config: RequestInterface): <T = any>(opt
   if (typeof config.customRequest === "function") {
     return config.customRequest;
   }
-
   if (isNodePlatform) {
     return nodeRequest;
   }
-  else if (
+  if (
     config.requestMode === "xhr" ||
     typeof globalThis.fetch === "undefined" ||
     (typeof config.cancel !== "undefined" && typeof AbortController === "undefined") ||

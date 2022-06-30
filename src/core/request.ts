@@ -1,13 +1,13 @@
 import { transfromRequestPayload, urlQuerySerialize } from "./transform";
 import { RequestInterface } from "../typedef";
-import { isNil } from "../utils";
+import { asyncReject, isNil } from "../utils";
 import { XsHeaders } from "../headers";
 import { transfromResponse } from "./transform";
 import { compose } from "./compose";
 import dispatchRequest from "../platform/dispatchRequest";
 import { ResponseStruct } from "./complete";
 
-export function exectionOfSingleRequest<T = any>(completeOpts: RequestInterface): Promise<ResponseStruct<T>>{
+export function exectionOfSingleRequest<T = any>(completeOpts: RequestInterface): Promise<ResponseStruct<T>> {
 	return compose([ completeOpts.interceptor ].flat(3).filter(Boolean))(completeOpts, async function requestExection(options: RequestInterface) {
 
 		options.url = urlQuerySerialize(options.url, options);
@@ -30,10 +30,14 @@ export function exectionOfSingleRequest<T = any>(completeOpts: RequestInterface)
 			}
 		}
 
-		// 发送请求
-		let responseStruct = await localRequest(options);
+		try {
+			// 发送请求
+			let responseStruct = await localRequest(options);
 
-		// 处理响应
-		return transfromResponse(responseStruct, responseType);
+			// 处理响应
+			return transfromResponse(responseStruct, responseType);
+		} catch (exx) {
+			return asyncReject(exx);
+		}
 	});
 }

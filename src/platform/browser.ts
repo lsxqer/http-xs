@@ -125,6 +125,17 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
     }
   }
 
+  let timeoutId = null;
+
+  if (typeof opts.timeout === "number") {
+    if (typeof cancelController === "undefined") {
+      cancelController = new AbortController();
+    }
+    timeoutId = setTimeout(function timeout() {
+      cancelController.abort(Error("timeout"));
+    }, opts.timeout);
+  }
+
   let header = opts.headers as any;
 
   if (header instanceof XsHeaders) {
@@ -172,8 +183,15 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
 
     // fetch 取消请求时的错误对象 —> DOMException
     if (exx instanceof DOMException) {
+      if (timeoutId !== null) {
+        return asyncReject(new XsError(0, `Http-xs: Network Timeout of ${opts.timeout}ms`, opts, header, "timeout"));
+      }
       return asyncReject(new XsError(0, `Http-xs: Client Abort ${exx.toString()}`, opts, header, "abort"));
     }
     return asyncReject(new XsError(0, `Http-xs: ${(exx as Error).message}`, opts, header, "error"));
+  } finally {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
   }
 }

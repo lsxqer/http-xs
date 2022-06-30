@@ -1,6 +1,6 @@
 {
   "name": "http-xs",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "main": "./out/cjs/index.js",
   "module": "./out/esm/index.js",
   "browser": "./out/iife/index.js",
