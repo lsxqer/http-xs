@@ -1,5 +1,5 @@
 import { isNodePlatform, isEmpty, valueOf } from "../utils";
-import { RequestInterface, XsHeaderImpl } from "../typedef";
+import type { RequestInterface, XsHeaderImpl } from "../typedef";
 import { contentType } from "../headers";
 import { forEach, isAbsoluteURL, isObject, isNil } from "../utils";
 import { ResponseStruct } from "./complete";
@@ -60,7 +60,7 @@ const querySerializerMap = {
 
 export function urlQuerySerialize(originalUrl = "", opts: RequestInterface) {
 
-  let sourceQuery: Record<string | number, unknown> | URLSearchParams | string = opts.query;
+  let sourceQuery: RequestInterface["query"] = opts.query;
 
   if (!isAbsoluteURL(originalUrl)) {
     originalUrl = originalUrl.replace(/^\/*/, "/").replace(/\/*$/, "").replace(/\s*/g, "");

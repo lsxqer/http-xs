@@ -1,5 +1,5 @@
 
-import { RequestInterface, ResponseStruct } from "../typedef";
+import type { RequestInterface, ResponseStruct } from "../typedef";
 import { fetchRequest, xhrRequest } from "./browser";
 import { isNodePlatform } from "../utils";
 import { nodeRequest } from "./http";

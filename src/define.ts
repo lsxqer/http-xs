@@ -1,10 +1,9 @@
 import { exectionOfSingleRequest } from "src/core/request";
 import mergeConfig from "./core/merge";
-import XsHeaders from "./headers";
-import { HttpMethod, Method, RequestInterface, ResponseStruct } from "./typedef";
+import type { HttpMethod, Method, RequestInterface, ResponseStruct } from "./typedef";
 import { isNil } from "./utils";
 
-export interface RecordInterface {
+export interface RequestEntry {
   [p: string]: {
     method: Method;
     url: string;
@@ -16,33 +15,112 @@ interface DefineExecute {
     payload?: RequestInterface["query"] | RequestInterface["body"],
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "query" | "body">
   ): Promise<S>;
-  <R = any, S = ResponseStruct<R>>(
-    payload: RequestInterface["query"] | RequestInterface["body"],
-    nextConfig?: Exclude<Partial<RequestInterface>, "url">
-  ): Promise<S>;
-  executing: boolean;
-  request: <S = ResponseStruct<any>>(
+  send: <S = ResponseStruct<any>>(
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method">
   ) => Promise<S>;
+  match: <S = ResponseStruct<any>>(
+    nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method" | "queryMatch">
+  ) => Promise<S>;
+  query: <S = ResponseStruct<any>>(
+    nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method" | "query">
+  ) => Promise<S>;
+  mutation: <S = ResponseStruct<any>>(
+    nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method" | "body">
+  ) => Promise<S>;
+  executing: boolean;
 }
 
 export type DefineMethod<
-  T extends RecordInterface = RecordInterface
-  > = {
+  T extends RequestEntry = RequestEntry
+> = {
     readonly [k in keyof T]: DefineExecute;
   };
 
-export type RequestInput = {
+type SendRequest<T = any> = (completeOpts: RequestInterface) => Promise<ResponseStruct<T>>;
+export type BaseRequest = {
   [k in Method]?: HttpMethod;
-} | typeof exectionOfSingleRequest;
+} | SendRequest;
 
 
-const notRequestBody = "get,head,trace";
+const notRequestBody = "get,head,trace" as string;
+
+function bindBaseRequest(
+  fetchRemote: typeof exectionOfSingleRequest,
+  mergedConfig: RequestInterface
+): DefineExecute {
+
+  async function executor(
+    payload?: RequestInterface["query"] | RequestInterface["body"] | null,
+    nextConfig?: RequestInterface
+  ) {
+    try {
+      executor.executing = true;
+
+      let config = mergeConfig(mergedConfig, nextConfig);
+
+      if (!isNil(payload)) {
+        if (notRequestBody.includes(config.method)) {
+          config.query = payload as RequestInterface["query"];
+        }
+        else {
+          config.body = payload;
+        }
+      }
+
+      return fetchRemote(config);
+    } finally {
+      executor.executing = false;
+    }
+  }
+
+  executor.send = function request(nextConfig?: RequestInterface) {
+    let merged = mergeConfig(mergedConfig, nextConfig);
+    return fetchRemote(merged);
+  };
+
+  executor.match = function match(matcher: (string | boolean | number)[], nextConfig?: RequestInterface) {
+    try {
+      executor.executing = true;
+      let config = mergeConfig(mergedConfig, nextConfig);
+      config.queryMatch = matcher;
+      return fetchRemote(config);
+    } finally {
+      executor.executing = false;
+    }
+  };
+
+  executor.query = function query(payload: RequestInterface["query"], nextConfig?: RequestInterface) {
+    try {
+      executor.executing = true;
+      let config = mergeConfig(mergedConfig, nextConfig);
+      config.query = payload;
+      return fetchRemote(config);
+    } finally {
+      executor.executing = false;
+    }
+  };
+
+  executor.mutation = function (data: RequestInterface["body"], nextConfig?: RequestInterface) {
+    try {
+      executor.executing = true;
+      let config = mergeConfig(mergedConfig, nextConfig);
+      config.body = data;
+      return fetchRemote(config);
+    } finally {
+      executor.executing = false;
+    }
+  };
+
+  executor.executing = false;
+
+  return executor as DefineExecute;
+}
+
 
 /**
  * 
- * @param store {get, post, ...} 请求方法对象
- * @param record 映射对象
+ * @param baseRequest {get, post, ...} 请求方法对象
+ * @param entry 映射对象
  * @returns 映射函数
  * 
  * @example
@@ -63,7 +141,7 @@ const notRequestBody = "get,head,trace";
  * user.update({ id: 1 });
  * user.delete(id: 2);
  * 
- * const defineInterface = deriveInterfaceWrapper(instce);
+ * const defineInterface = applyRequest(instce);
  * 
  * const home = defineInterface({
  *  getHomePage: {
@@ -86,60 +164,20 @@ const notRequestBody = "get,head,trace";
  * ```
  */
 export function defineInterface<
-  T extends RecordInterface = RecordInterface,
+  T extends RequestEntry = RequestEntry,
   R extends DefineMethod<T> = DefineMethod<T>
->(exec: RequestInput, record: T): R {
+>(exec: BaseRequest, entry: T): R {
 
-  let entries = Object.entries(record);
+  let entries = Object.entries(entry);
   let define = {};
 
   for (let [ key, def ] of entries) {
-    let method = def.method, url = def.url;
+    let method = def.method;
 
-    const executor = (async (data?: RequestInterface["query"] | RequestInterface["body"] | null, nextConfig?: RequestInterface) => {
-
-      executor.executing = true;
-
-      try {
-        let config = nextConfig ?? {};
-        let nextHeaders: XsHeaders = null;
-
-        if (!(isNil(config.headers) && isNil(def.headers))) {
-          nextHeaders = new XsHeaders(def.headers);
-          XsHeaders.forEach(config.headers, (k, v) => {
-            nextHeaders.set(k, v);
-          });
-        }
-
-        config = mergeConfig(nextConfig, def);
-
-        nextHeaders !== null && (config.headers = nextHeaders);
-
-        if (!isNil(data)) {
-          if (notRequestBody.includes(method)) {
-            config.query = data as RequestInterface["query"];
-          }
-          else {
-            config.body = data;
-          }
-        }
-
-        config.url = url;
-        config.method = method;
-        return (typeof exec === "function" ? exec(config) : exec[method](config));
-      } finally {
-        executor.executing = false;
-      }
-    }) as DefineExecute;
-
-    executor.request = (function request(nextConfig?: RequestInterface) {
-      let merged = mergeConfig(nextConfig ?? {}, def);
-      merged.url = def.url;
-      merged.method = def.method;
-      return (typeof exec === "function" ? exec(merged) : exec[method](merged));
-    } as any);
-
-    define[key] = executor;
+    define[key] = bindBaseRequest(
+      typeof exec === "function" ? exec : exec[method],
+      def
+    );
   }
 
   return define as R;
@@ -147,9 +185,9 @@ export function defineInterface<
 
 /**
  * 接受一个实例，返回一个函数，函数中使用实例中的方法
- * @param store {get, post, put...}
- * @returns defineInterface.bind(this,store)
+ * @param baseRequest {get, post, put...}
+ * @returns defineInterface.bind(this,baseRequest)
  */
-export function applyRequest(this: ThisType<any>, store: RequestInput) {
-  return defineInterface.bind(this, store);
+export function applyRequest(this: ThisType<any>, baseRequest: BaseRequest) {
+  return defineInterface.bind(this, baseRequest);
 }

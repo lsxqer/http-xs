@@ -1,5 +1,5 @@
 import { transfromRequestPayload, urlQuerySerialize } from "./transform";
-import { RequestInterface } from "../typedef";
+import type { RequestInterface } from "../typedef";
 import { asyncReject, isNil } from "../utils";
 import { XsHeaders } from "../headers";
 import { transfromResponse } from "./transform";

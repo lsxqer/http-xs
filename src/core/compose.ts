@@ -1,4 +1,4 @@
-import { RequestInterface, RequestUseCallback } from "../typedef";
+import type { RequestInterface, RequestUseCallback } from "../typedef";
 import { asyncReject, asyncResolve } from "../utils";
 import { ResponseStruct } from "./complete";
 
@@ -13,7 +13,7 @@ export function compose(fns: RequestUseCallback[] = []) {
     function run(i: number) {
 
       let fn = fns[i];
-      
+
       let nextCallback = () => {
         nextCallback = null;
         return run(i + 1);

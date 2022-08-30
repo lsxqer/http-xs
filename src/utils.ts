@@ -33,7 +33,6 @@ export function isAbsoluteURL(url: string) {
   return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
 }
 
-
 export function isNil<T>(tar: T): tar is null {
   return tar === null || tar === undefined;
 }
@@ -65,7 +64,7 @@ export function isEmpty(tar: any): boolean {
 
 
 export function forEach<T extends Record<string, unknown> | Array<unknown> = any, K extends keyof T = keyof T>(target: any, each: (key: K, val: T[K]) => void): void {
-  if (target === null || target === undefined) {
+  if (isNil(target)) {
     return;
   }
   if ("forEach" in target) {

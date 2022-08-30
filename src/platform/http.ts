@@ -1,10 +1,10 @@
 import XsHeaders from "../headers";
 import { XsError, validateFetchStatus, ResponseStruct } from "../core/complete";
 import { Stream } from "stream";
-import { ClientRequestArgs, RequestInterface, XsHeaderImpl } from "../typedef";
-import type { ClientRequest, IncomingMessage } from "../typedef";
 import { isStream } from "../utils";
 import { asyncReject } from "../utils";
+import type { ClientRequest, IncomingMessage, ClientRequestArgs, RequestInterface, XsHeaderImpl  } from "../typedef";
+import { HttpStatusException } from "src/enums";
 
 function getRequest(type: "http" | "https"): ClientRequest {
   if (type === "http") {
@@ -27,7 +27,7 @@ export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseSt
       requestOptions = require("url").urlToHttpOptions(new URL(opts.url));
     } catch (exx) {
       // handle parse url errx
-      return asyncReject(new XsError(0, `Http-xs: Parser Url Error ${exx.toString()}`, opts, new XsHeaders(), "error"));
+      return asyncReject(new XsError(HttpStatusException.Error, `[Http-Xs]: Parser Url Error ${exx.toString()}`, opts, new XsHeaders(), "error"));
     }
   }
 
@@ -67,7 +67,7 @@ export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseSt
 
       res.on("error", function onError(err) {
         res.resume();
-        return reject(new XsError(0, `Http-xs: ${err.message} ${err.stack}`, opts, resHeader, "error"));
+        return reject(new XsError(HttpStatusException.Error, `[Http-Xs]: ${err.message} ${err.stack}`, opts, resHeader, "error"));
       });
 
       if (typeof opts.encoding !== "undefined") {
@@ -85,7 +85,7 @@ export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseSt
 
       stream.on("error", function onError(exx) {
         if (req.destroyed) { return }
-        return reject(new XsError(0, `Http-xs: ${exx.message} ${exx.stack}`, opts, resHeader, "error"));
+        return reject(new XsError(HttpStatusException.Error, `[Http-Xs]: ${exx.message} ${exx.stack}`, opts, resHeader, "error"));
       });
 
       stream.on("end", function onStreameEnd() {
@@ -99,13 +99,13 @@ export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseSt
 
     req.on("error", function onError(exx) {
       if (req.destroyed) { return }
-      return reject(new XsError(0, `Http-xs: Network Error:\n${exx.message}`, opts, undefined, "error"));
+      return reject(new XsError(HttpStatusException.Error, `[Http-Xs]: Network Error:\n${exx.message}`, opts, undefined, "error"));
     });
 
     if (typeof opts.timeout === "number") {
       req.setTimeout(opts.timeout, function onTimeout() {
         req.destroy();
-        return reject(new XsError(0, `Http-xs: Network Timeout of ${opts.timeout}ms`, opts, undefined, "timeout"));
+        return reject(new XsError(HttpStatusException.Timeout, `[Http-Xs]: Network Timeout of ${opts.timeout}ms`, opts, undefined, "timeout"));
       });
     }
 
@@ -115,17 +115,17 @@ export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseSt
         if (opts.cancel.signal.aborted) { return }
         req.destroy();
         cancel = null;
-        return reject(new XsError(0, "Http-xs: Client Abort", opts, undefined, "abort"));
+        return reject(new XsError(HttpStatusException.Cancel, "[Http-Xs]: Client Abort", opts, undefined, "abort"));
       };
 
       opts.cancel.signal.addEventListener("abort", cancel, { once: true });
     }
 
-    req.on("abort", function onAbort() { reject(new XsError(0, "Http-xs: Client Abort", opts, undefined, "abort")) });
+    req.on("abort", function onAbort() { reject(new XsError(HttpStatusException.Cancel, "[Http-Xs]: Client Abort", opts, undefined, "abort")) });
 
     if (isStream(body)) {
       (body as Stream).on("error", function onError(exx) {
-        return reject(new XsError(0, `Http-xs: Request data error\n${exx.message} ${exx.stack}`, opts, undefined, "error"));
+        return reject(new XsError(HttpStatusException.Error, `[Http-Xs]: Request data error\n${exx.message} ${exx.stack}`, opts, undefined, "error"));
       }).pipe(req);
     }
     else {

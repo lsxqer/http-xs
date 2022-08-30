@@ -71,7 +71,7 @@ export interface RequestInterface {
   /**
    * body - fetch、xhr、node 平台支持的请求体
    */
-  body?: string | URLSearchParams | Blob | BufferSource | FormData | null | Record<string, unknown> | Uint8Array | ReadStream | Buffer
+  body?: string | URLSearchParams | Blob | BufferSource | any[] | FormData | null | Record<string, unknown> | Uint8Array | ReadStream | Buffer
 
   /**
    * cancel - 取消请求的接口

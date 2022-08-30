@@ -1,11 +1,12 @@
 node_modules/
 lib/
-types/
+out/
+@types/
 coverage/
-
 
 *.exe
 *.log
 *.lock
 src/*.js
 .DS_Store
+*.js.map

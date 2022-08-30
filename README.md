@@ -269,7 +269,7 @@ xs.get("/query/{id}", {queryMatch: [ 1 ]});
 ### 请求、响应预处理
 ```ts
 
-const xs = createInstance({});
+const xs = create({});
 
 xs.use(
   (req, next) => {

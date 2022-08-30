@@ -1,6 +1,6 @@
 
 import { exectionOfSingleRequest } from "./request";
-import { HttpMethod, Method, RequestInterface } from "../typedef";
+import type { HttpMethod, Method, RequestInterface } from "../typedef";
 import mergeConfig from "./merge";
 
 function factoryForHttpMethod(method: Method): HttpMethod {

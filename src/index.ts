@@ -9,6 +9,7 @@ import { asyncResolve, asyncReject } from "./utils";
 import { asyncIterable } from "./asyncIterator";
 import retry from "./retry";
 export * from "./typedef";
+export * from "./enums";
 
 const xs = {
   ...HttpXsDefaultProto,

@@ -1,5 +1,5 @@
 import { isNil, isObject, valueOf } from "./utils";
-import { XsHeaderImpl } from "./typedef";
+import type { XsHeaderImpl } from "./typedef";
 
 export const contentType = {
   contentType: "Content-Type",
@@ -69,6 +69,18 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
         each(toCamelCase(k), v);
       });
     }
+  }
+  
+  keys(): IterableIterator<string> {
+    return super.keys();
+  }
+
+  values(): IterableIterator<string> {
+    return super.values();
+  }
+
+  empty(): boolean {
+    return Array.from(this.keys()).length === 0;
   }
 
   toString(): string {

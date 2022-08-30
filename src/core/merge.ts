@@ -1,7 +1,7 @@
 
 import XsHeaders from "src/headers";
-import { Method, RequestInterface } from "../typedef";
 import { isObject, forEach, isArray } from "../utils";
+import type { Method, RequestInterface, XsHeaderImpl } from "../typedef";
 
 export default function mergeConfig(
   url: string | Partial<RequestInterface>,
@@ -15,9 +15,17 @@ export default function mergeConfig(
     completeOpts.url = url;
   }
 
+  let header = completeOpts.headers as XsHeaderImpl;
+
   const each = (key: keyof RequestInterface, val) => {
+    if (!(header instanceof XsHeaders)) {
+      header = new XsHeaders();
+    }
+
     if (key === "headers") {
-      completeOpts[key] = new XsHeaders(val);
+      XsHeaders.forEach(val, (k, v) => {
+        header.set(k, v);
+      });
       return;
     }
 
@@ -29,6 +37,7 @@ export default function mergeConfig(
       }
 
       val.forEach(v => exist.push(v));
+      return;
     }
 
     // 数组的情况

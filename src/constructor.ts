@@ -1,13 +1,13 @@
 import mergeConfig from "./core/merge";
-import { RequestUseCallback, Method, RequestInterface, HttpMethod, CustomRequest } from "./typedef";
 import { forEach, isNil, isObject, asyncReject, asyncResolve } from "./utils";
-import { defineInterface, DefineMethod, RecordInterface } from "./define";
+import { defineInterface, DefineMethod, RequestEntry } from "./define";
 import HttpXsDefaultProto from "./proto";
 import { exectionOfSingleRequest } from "./core/request";
 import XsCancel from "./cancel";
 import XsHeaders, { contentType } from "./headers";
 import retry from "./retry";
 import { asyncIterable } from "./asyncIterator";
+import type { RequestUseCallback, Method, RequestInterface, HttpMethod, CustomRequest } from "./typedef";
 
 const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ] as Method[];
 
@@ -66,8 +66,10 @@ function mergeDefaultInceConfig(instReq: RequestInstanceInterface, customReq: Re
     customReq.headers = nextHeader;
   }
 
-  // url
-  customReq.url = baseUrl + customReq.url.replace(/^\/*/, "/");
+  let inputRequrl = customReq.url;
+  if (!(/^\s*https?/.test(inputRequrl))) {
+    customReq.url = baseUrl + inputRequrl.replace(/^\/*/, "/");
+  }
 
   let existsInterceptor = customReq.interceptor;
   let hasInterceptor = Array.isArray(existsInterceptor) || typeof existsInterceptor === "function";
@@ -125,7 +127,7 @@ type Instance = Omit<
   { [key in Method]: HttpMethod } &
 {
   use: UseFunction;
-  defineInterface: <T extends RecordInterface = RecordInterface >(apiDefine: T) => DefineMethod<T>;
+  defineInterface: <T extends RequestEntry = RequestEntry >(entry: T) => DefineMethod<T>;
 };
 
 function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instance {
@@ -174,8 +176,8 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
     };
   });
 
-  instce.defineInterface = function (apiDefine: RecordInterface) {
-    return defineInterface(instce.request, apiDefine);
+  instce.defineInterface = function (entry: RequestEntry) {
+    return defineInterface(instce.request, entry);
   };
 
   instce.setProfix = function (nextUrl: string, replace = false) {

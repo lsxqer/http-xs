@@ -1,5 +1,5 @@
 import { getAdapEventTarget } from "./eventTarget";
-import { IXsEventTarget } from "../typedef";
+import type { IXsEventTarget } from "../typedef";
 import { IEvent } from "./event";
 
 
