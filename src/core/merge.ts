@@ -1,6 +1,6 @@
 
 import XsHeaders from "src/headers";
-import { isObject, forEach, isArray } from "../utils";
+import { isObject, forEach, isArray, isNil } from "../utils";
 import type { Method, RequestInterface, XsHeaderImpl } from "../typedef";
 
 export default function mergeConfig(
@@ -52,7 +52,9 @@ export default function mergeConfig(
   if (isObject(options)) {
     forEach(options, each);
   }
-
-  completeOpts.method = method;
+  
+  if (!isNil(method)) {
+    completeOpts.method = method;
+  }
   return completeOpts;
 }
