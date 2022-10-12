@@ -42,7 +42,7 @@ export type BaseRequest = {
 } | SendRequest;
 
 
-const notRequestBody = "get,head,trace" as string;
+const notRequireBody = "get,head,trace" as string;
 
 function bindBaseRequest(
   fetchRemote: typeof exectionOfSingleRequest,
@@ -59,7 +59,7 @@ function bindBaseRequest(
       let config = mergeConfig(mergedConfig, nextConfig);
 
       if (!isNil(payload)) {
-        if (notRequestBody.includes(config.method)) {
+        if (notRequireBody.includes(config.method)) {
           config.query = payload as RequestInterface["query"];
         }
         else {

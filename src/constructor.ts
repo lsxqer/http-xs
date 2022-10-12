@@ -87,13 +87,16 @@ function mergeDefaultInceConfig(instReq: RequestInstanceInterface, customReq: Re
   })) as RequestUseCallback;
 
   // use
+  // 构造函数中选择[interceptors]不为空
   if (Array.isArray(instReq.interceptors)) {
     customReq.interceptor = instReq.interceptors.concat(del, existsInterceptor ?? []);
   }
 
   keys.forEach(key => {
     let customVal = customReq[key];
-    if (typeof customVal === "undefined" || customVal === null) {
+
+    // 如果实例请求中val为nil，选用实例配置中的val
+    if (isNil(customVal)) {
       customReq[key] = instReq[key];
     }
   });

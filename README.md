@@ -13,12 +13,12 @@ export interface RequestInterface {
   /**
     * url - 请求的具体路径
     */
-  url?: string
+  url?: string;
   /**
    *
    * method - 请求的方式 { "get", "post", ...}
    */
-  method?: Method
+  method?: Method;
   /**
     * headers - 请求头信息
     *  - object
@@ -27,23 +27,23 @@ export interface RequestInterface {
     *  - XsHeaders
     *   !XsHeaders 为内部构造对象，方便使用，解决浏览器和node平台的差异。 推荐使用
     */
-  headers?: Record<string, string> | [string, string][] | XsHeaderImpl
+  headers?: Record<string, string> | [string, string][] | XsHeaderImpl;
   /**
    * query - 作为请求url的查询参数
    *   - object
    *   - string
    *   - URLSearchParams
    */
-  query?: Record<string, unknown> | string | URLSearchParams
+  query?: Record<string, unknown> | string | URLSearchParams;
   /**
    * queryMatch - 动态路由
    *    /query/{id} -> /query/123
    */
-  queryMatch?: (string | boolean | number)[]
+  queryMatch?: (string | boolean | number)[];
   /**
    * body - fetch、xhr、node 平台支持的请求体
    */
-  body?: string | URLSearchParams | Blob | BufferSource | FormData | null | Record<string, unknown> | Uint8Array | ReadStream | Buffer
+  body?: string | URLSearchParams | Blob | BufferSource | FormData | null | Record<string, unknown> | Uint8Array | ReadStream | Buffer;
   /**
    * cancel - 取消请求的接口
    *
@@ -56,7 +56,7 @@ export interface RequestInterface {
    * cancel.abort() // 取消
    * ```
    */
-  cancel?: XsCancelImpl
+  cancel?: XsCancelImpl;
 
   /**
    * responseType - 响应类型， 由 xhr、fetch、node各个api的支持
@@ -75,33 +75,33 @@ export interface RequestInterface {
   | "json"
   | "blob"
   | "text"
-  | ""
+  | "";
 
   /**
    * timeout - 请求超时时间
    */
-  timeout?: number
+  timeout?: number;
 
   /**
    * onProgress - 接受响应事件
    */
-  onProgress?: (event: ProgressEvent) => void
+  onProgress?: (event: ProgressEvent) => void;
   /**
    * onUploadProgress - 上传进度事件
    */
-  onUploadProgress?:(event: ProgressEvent) => void
+  onUploadProgress?:(event: ProgressEvent) => void;
   /**
    * withCredentials xhr 对象的熟悉感， 是否允许跨域
    */
-  withCredentials?: boolean
+  withCredentials?: boolean;
   /**
    * 请求中间函数
    */
-  use?: UseMidware[]
+  use?: UseMidware[];
   /**
    * requestMode 在浏览器端选用发送本次请求的对象
    */
-  requestMode?: "xhr" | "fetch"
+  requestMode?: "xhr" | "fetch";
  
   // fetch
   /**
@@ -116,7 +116,7 @@ export interface RequestInterface {
   redirect?: RequestRedirect;
   referrer?: string;
   referrerPolicy?: ReferrerPolicy;
-  signal?: AbortController
+  signal?: AbortController;
 
   // node
   /**
@@ -344,7 +344,7 @@ import { XsCancel } from "http-xs";
 // 使用xs提供的类
   const cancel = new XsCancel();
 
-  Get(url,{
+  Get(url, {
     cancel:cancel
   });
 

@@ -127,7 +127,7 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
     }
   }
 
-  let timeoutId = null;
+  let timeoutId: NodeJS.Timeout = null;
 
   if (typeof opts.timeout === "number") {
     if (typeof cancelController === "undefined") {
