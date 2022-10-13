@@ -19,12 +19,15 @@ interface DefineExecute {
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method">
   ) => Promise<S>;
   match: <S = ResponseStruct<any>>(
+    matcher: RequestInterface["queryMatch"],
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method" | "queryMatch">
   ) => Promise<S>;
   query: <S = ResponseStruct<any>>(
+    params: RequestInterface["query"],
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method" | "query">
   ) => Promise<S>;
   mutation: <S = ResponseStruct<any>>(
+    body: RequestInterface["body"],
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method" | "body">
   ) => Promise<S>;
   executing: boolean;
@@ -171,7 +174,7 @@ export function defineInterface<
   let entries = Object.entries(entry);
   let define = {};
 
-  for (let [ key, def ] of entries) {
+  for (let [key, def] of entries) {
     let method = def.method;
 
     define[key] = bindBaseRequest(
