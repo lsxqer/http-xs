@@ -174,7 +174,7 @@ export function defineInterface<
   let entries = Object.entries(entry);
   let define = {};
 
-  for (let [key, def] of entries) {
+  for (let [ key, def ] of entries) {
     let method = def.method;
 
     define[key] = bindBaseRequest(

@@ -31,7 +31,7 @@ export default class Signal extends (getAdapEventTarget() as any) implements IXs
   }
 
   removeEventListener(type: keyof AbortSignalEventMap, listener: (...args)=>void) {
-    super.removeListener(type, listener);
+    super.removeEventListener(type, listener);
   }
 
   subscribe(listener:(...args) => void) {

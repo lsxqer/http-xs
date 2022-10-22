@@ -1,6 +1,6 @@
 import type { RequestInterface, XsHeaderImpl } from "../typedef";
 import { XsError, validateFetchStatus, ResponseStruct } from "../core/complete";
-import { asyncReject, asyncResolve } from "../utils";
+import { asyncReject, asyncResolve, isNil } from "../utils";
 import XsHeaders from "../headers";
 import XsCancel from "../cancel";
 import { HttpStatusException } from "../enums";
@@ -185,10 +185,12 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
 
     // fetch 取消请求时的错误对象 —> DOMException
     if (exx instanceof DOMException) {
+      if (!isNil(opts.cancel) || !isNil(opts.signal)) {
+        return asyncReject(new XsError(HttpStatusException.Cancel, `[Http-Xs]: Client Abort ${exx.toString()}`, opts, header, "abort"));
+      }
       if (timeoutId !== null) {
         return asyncReject(new XsError(HttpStatusException.Timeout, `[Http-Xs]: Network Timeout of ${opts.timeout}ms`, opts, header, "timeout"));
       }
-      return asyncReject(new XsError(HttpStatusException.Cancel, `[Http-Xs]: Client Abort ${exx.toString()}`, opts, header, "abort"));
     }
     return asyncReject(new XsError(HttpStatusException.Error, `[Http-Xs]: ${(exx as Error).message}`, opts, header, "error"));
   } finally {
