@@ -1,20 +1,23 @@
+import { Get, XsCancel } from "./src";
 
+let cancel: InstanceType<typeof XsCancel> = null!;
 
-let url = "/query/{id}/{is}";
+document.querySelector(".click")?.addEventListener("click", () => {
 
-let matchRe = /{[\w]+}/g;
+  if (cancel !== null) {
+    cancel.abort();
+    cancel = null!;
+  }
 
-let r;
+  cancel = new XsCancel();
 
-let t = [1, 3];
-
-let nextUrl = url.slice(0, url.indexOf("{") - 1);
-let i = 0;
-while ((r = matchRe.exec(url), r !== null) && i < 1000) {
-  i++;
-  nextUrl += "/" + t.shift();
-
-}
-
-
-console.log(nextUrl);
+  Get("http://localhost:4096/timeout", { cancel: cancel })
+    .then(rs => {
+      console.log(rs);
+    }).catch(exx => {
+      
+      console.log(exx.toString());
+      console.log(exx.stringify());
+      console.log(exx.toJson());
+    });
+});

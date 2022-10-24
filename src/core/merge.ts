@@ -1,5 +1,5 @@
 
-import XsHeaders from "src/headers";
+import XsHeaders from "../headers";
 import { isObject, forEach, isArray, isNil } from "../utils";
 import type { Method, RequestInterface, XsHeaderImpl } from "../typedef";
 

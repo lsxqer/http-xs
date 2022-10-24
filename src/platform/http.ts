@@ -4,7 +4,7 @@ import { Stream } from "stream";
 import { isStream } from "../utils";
 import { asyncReject } from "../utils";
 import type { ClientRequest, IncomingMessage, ClientRequestArgs, RequestInterface, XsHeaderImpl  } from "../typedef";
-import { HttpStatusException } from "src/enums";
+import { HttpStatusException } from "../enums";
 
 function getRequest(type: "http" | "https"): ClientRequest {
   if (type === "http") {

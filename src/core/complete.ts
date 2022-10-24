@@ -31,12 +31,17 @@ export class XsError<T = any, R extends RequestInterface = RequestInterface> ext
   get timeout() {
     return typeof this.completeConfig.timeout === "number" ? this.completeConfig.timeout : null;
   }
-  
+
   toString() {
+    return this.message;
+  }
+
+  stringify() {
     return JSON.stringify(this, null, 4);
   }
-  toJSON() {
-    return JSON.stringify(this, null, 4);
+
+  toJson() {
+    return JSON.parse(JSON.stringify(this, null, 4));
   }
 
   // refetch

@@ -97,7 +97,7 @@ function bindBaseRequest(
       executor.executing = true;
       let config = mergeConfig(mergedConfig, nextConfig);
       config.query = payload;
-      return fetchRemote(config);
+      return await fetchRemote(config);
     } finally {
       executor.executing = false;
     }
