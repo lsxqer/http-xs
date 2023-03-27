@@ -4,7 +4,7 @@ import type { HttpMethod, Method, RequestInterface, ResponseStruct } from "./typ
 import { isNil } from "./utils";
 
 export interface RequestEntry {
-  [p: string]: {
+  [k: string]: {
     method: Method;
     url: string;
   } & Omit<RequestInterface, "url" | "method">;
@@ -56,62 +56,66 @@ function bindBaseRequest(
     payload?: RequestInterface["query"] | RequestInterface["body"] | null,
     nextConfig?: RequestInterface
   ) {
+    return runWithExecuting(
+      async () => {
+        let config = mergeConfig(mergedConfig, nextConfig);
+
+        if (!isNil(payload)) {
+          if (notRequireBody.includes(config.method)) {
+            config.query = payload as RequestInterface["query"];
+          }
+          else {
+            config.body = payload;
+          }
+        }
+
+        return await fetchRemote(config);
+      }
+    );
+  }
+
+  async function runWithExecuting(fn: () => Promise<any>) {
     try {
       executor.executing = true;
-
-      let config = mergeConfig(mergedConfig, nextConfig);
-
-      if (!isNil(payload)) {
-        if (notRequireBody.includes(config.method)) {
-          config.query = payload as RequestInterface["query"];
-        }
-        else {
-          config.body = payload;
-        }
-      }
-
-      return fetchRemote(config);
-    } finally {
+      return await fn();
+    }
+    finally {
       executor.executing = false;
     }
   }
 
-  executor.send = function request(nextConfig?: RequestInterface) {
-    let merged = mergeConfig(mergedConfig, nextConfig);
-    return fetchRemote(merged);
+  executor.send = async function request(nextConfig?: RequestInterface) {
+    return executor(null, nextConfig);
   };
 
-  executor.match = function match(matcher: (string | boolean | number)[], nextConfig?: RequestInterface) {
-    try {
-      executor.executing = true;
-      let config = mergeConfig(mergedConfig, nextConfig);
-      config.queryMatch = matcher;
-      return fetchRemote(config);
-    } finally {
-      executor.executing = false;
-    }
+  executor.match = async function match(matcher: (string | boolean | number)[], nextConfig?: RequestInterface) {
+    return runWithExecuting(
+      async () => {
+        let config = mergeConfig(mergedConfig, nextConfig);
+        config.queryMatch = matcher;
+        return await fetchRemote(config);
+      }
+    );
   };
 
-  executor.query = function query(payload: RequestInterface["query"], nextConfig?: RequestInterface) {
-    try {
-      executor.executing = true;
-      let config = mergeConfig(mergedConfig, nextConfig);
-      config.query = payload;
-      return await fetchRemote(config);
-    } finally {
-      executor.executing = false;
-    }
+  executor.query = async function query(payload: RequestInterface["query"], nextConfig?: RequestInterface) {
+    return runWithExecuting(
+      async () => {
+        let config = mergeConfig(mergedConfig, nextConfig);
+        config.query = payload;
+        return await fetchRemote(config);
+      }
+    );
   };
 
-  executor.mutation = function (data: RequestInterface["body"], nextConfig?: RequestInterface) {
-    try {
-      executor.executing = true;
-      let config = mergeConfig(mergedConfig, nextConfig);
-      config.body = data;
-      return fetchRemote(config);
-    } finally {
-      executor.executing = false;
-    }
+  executor.mutation = async function (data: RequestInterface["body"], nextConfig?: RequestInterface) {
+    return runWithExecuting(
+      async () => {
+        let config = mergeConfig(mergedConfig, nextConfig);
+        config.body = data;
+        return fetchRemote(config);
+      }
+    );
   };
 
   executor.executing = false;
@@ -174,7 +178,7 @@ export function defineInterface<
   let entries = Object.entries(entry);
   let define = {};
 
-  for (let [ key, def ] of entries) {
+  for (let [key, def] of entries) {
     let method = def.method;
 
     define[key] = bindBaseRequest(
