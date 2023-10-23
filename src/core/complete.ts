@@ -47,7 +47,7 @@ export class XsError<T = any, R extends RequestInterface = RequestInterface> ext
   // refetch
 }
 
-export class ResponseStruct<T = any, R extends RequestInterface = RequestInterface> {
+export class ResponseStruct<T = any> {
 
   public response: T;
   public ok = false;
@@ -59,7 +59,7 @@ export class ResponseStruct<T = any, R extends RequestInterface = RequestInterfa
     public status: number,
     public message: string,
 
-    public completeConfig: R,
+    public completeConfig: RequestInterface,
     public type: NetworkType = "default",
     public headers: XsHeaderImpl = new XsHeaders()
   ) {
@@ -79,7 +79,7 @@ export class ResponseStruct<T = any, R extends RequestInterface = RequestInterfa
   // }
 
   private refetch(opts?: RequestInterface) {
-    this.completeConfig = mergeConfig(opts, this.completeConfig) as R;
+    this.completeConfig = mergeConfig(opts, this.completeConfig) as RequestInterface;
     return exectionOfSingleRequest(this.completeConfig);
   }
 

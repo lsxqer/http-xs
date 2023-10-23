@@ -26,7 +26,7 @@ export function isStream(tar: any) {
 export function isArray<R = any, T extends Array<R> = Array<R>>(tar: unknown): tar is T {
   return Array.isArray(tar);
 }
-
+// @ts-ignore
 export const isNodePlatform = typeof process !== "undefined" && valueOf(process) === "process";
 
 export function isAbsoluteURL(url: string) {

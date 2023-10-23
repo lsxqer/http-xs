@@ -1,3 +1,4 @@
+
 import type { Agent, ClientRequest, ClientRequestArgs, IncomingMessage } from "http";
 import { ReadStream } from "fs";
 import { ResponseStruct } from "./core/complete";
@@ -7,8 +8,6 @@ export type { ClientRequestArgs, ClientRequest, IncomingMessage };
 
 export interface RequestUseCallback<UR = RequestInterface> {
   (req: RequestInterface, next: <Res = any, T = ResponseStruct<Res>>() => Promise<T>): UR | Promise<UR>;
-
-  // Promise<ResponseStruct<any | RequestInterface>> | RequestInterface | any;
 }
 
 export type { ResponseStruct };
@@ -30,7 +29,8 @@ export interface XsHeaderImpl {
 export interface CustomRequest<Q extends RequestInterface = RequestInterface, R extends ResponseStruct = ResponseStruct> {
   (req: Q): Promise<R>;
 }
-
+// type Buffer = any;
+// type BufferEncoding = any;
 export interface RequestInterface {
 
   /**
@@ -67,11 +67,11 @@ export interface RequestInterface {
    *    /query/{id} -> /query/123
    */
   queryMatch?: (string | boolean | number)[];
-
   /**
    * body - fetch、xhr、node 平台支持的请求体
-   */
-  body?: string | URLSearchParams | Blob | BufferSource | any[] | FormData | null | Record<string, unknown> | Uint8Array | ReadStream | Buffer;
+  */
+  body?: string | URLSearchParams | Blob | BufferSource | unknown[] | FormData | null | Record<string, unknown> | Uint8Array | ReadStream
+  | Buffer;
 
   /**
    * cancel - 取消请求的接口

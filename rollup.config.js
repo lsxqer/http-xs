@@ -11,18 +11,19 @@ export default {
       useTsconfigDeclarationDir: true,
     }),
   ],
-  output: [{
-    file: pkg.module,
-    format: "es",
-    sourcemap: true
-  },
-  {
-    file: pkg.browser,
-    name: "xs",
-    format: "umd",
-    exports: "named",
-    esModule: false,
-    sourcemap: true
-  }
+  output: [
+    {
+      file: pkg.module,
+      format: "es",
+      sourcemap: true
+    },
+    {
+      file: pkg.browser,
+      name: "xs",
+      format: "umd",
+      exports: "named",
+      esModule: false,
+      sourcemap: true
+    }
   ]
 };

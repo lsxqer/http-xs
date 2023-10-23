@@ -12,6 +12,7 @@ export class XsEventTarget {
   private events: IEventEmitter;
 
   constructor() {
+    // @ts-ignore
     let EventEmitter = require("events");
     this.events = new EventEmitter();
   }

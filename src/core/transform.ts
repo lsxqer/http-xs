@@ -1,8 +1,11 @@
 import { isNodePlatform, isEmpty, valueOf } from "../utils";
 import type { RequestInterface, XsHeaderImpl } from "../typedef";
-import { contentType } from "../headers";
+import { XsHeaders } from "../headers";
 import { forEach, isAbsoluteURL, isObject, isNil } from "../utils";
 import { ResponseStruct } from "./complete";
+
+
+
 
 export function encode(input: string): string {
   try {
@@ -117,14 +120,14 @@ export function transfromRequestPayload(opts: RequestInterface) {
   }
 
   let header = opts.headers as XsHeaderImpl;
-  let headerContentType = header.get(contentType.contentType), replaceContentType = headerContentType;
+  let headerContentType = header.get(XsHeaders.contentType), replaceContentType = headerContentType;
 
   switch (valueOf(body).toLowerCase()) {
     case "array":
     case "urlsearchparams":
     case "object": {
       if (
-        contentType.isJSON(replaceContentType) &&
+        XsHeaders.isJSON(replaceContentType) &&
         (isObject(body) || Array.isArray(body))
       ) {
         body = JSON.stringify(body);
@@ -134,29 +137,31 @@ export function transfromRequestPayload(opts: RequestInterface) {
       }
 
       if (isNodePlatform) {
+        // @ts-ignore
         body = Buffer.from(body, "utf-8");
       }
 
-      replaceContentType = contentType.search;
+      replaceContentType = XsHeaders.type.form;
       break;
     }
     case "string":
-      replaceContentType = contentType.text;
+      replaceContentType = XsHeaders.type.text;
       break;
     case "arraybuffer": {
       if (isNodePlatform) {
+        // @ts-ignore
         body = Buffer.from(new Uint8Array(body as ArrayBuffer));
       }
       break;
     }
     case "formdata": {
       replaceContentType = headerContentType = null;
-      header.delete(contentType.contentType);
+      header.delete(XsHeaders.contentType);
     }
   }
 
   if (isEmpty(headerContentType) && !isEmpty(replaceContentType)) {
-    header.set(contentType.contentType, replaceContentType);
+    header.set(XsHeaders.contentType, replaceContentType);
   }
 
   opts.headers = header;
@@ -191,7 +196,7 @@ export function transfromResponse(responseStruct: ResponseStruct, responseType: 
       response = response.toString("utf-8");
 
       // 在node环境如果是json就parse一下
-      if (typeof response === "string" && ([ "text", "utf8" ].includes(responseType) === false)) {
+      if (typeof response === "string" && (["text", "utf8"].includes(responseType) === false)) {
         try {
           response = JSON.parse(response);
           /* eslint-disable no-empty */

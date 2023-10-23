@@ -1,15 +1,8 @@
 import { isNil, isObject, valueOf } from "./utils";
 import type { XsHeaderImpl } from "./typedef";
 
-export const contentType = {
-  contentType: "Content-Type",
-  search: "application/x-www-form-urlencoded; charset=UTF-8",
-  json: "application/json; charset=UTF-8",
-  text: "text/plain; charset=UTF-8",
-  isJSON(src?: string) {
-    return src?.includes("application/json");
-  }
-};
+
+
 
 /**
  * 将`content-type` 转换为 `Content-Type`
@@ -38,9 +31,11 @@ export function toCamelCase(name: string): string {
 }
 
 
+export type HeaderEntries = Record<string, string> | [string, string][] | XsHeaderImpl;
+
 export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
 
-  constructor(init?: Record<string, string> | [string, string][] | XsHeaderImpl) {
+  constructor(init?: HeaderEntries) {
 
     let initialize: Record<string, string> = {};
 
@@ -51,7 +46,7 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
     super(initialize);
   }
 
-  static forEach(init: Record<string, string> | [string, string][] | XsHeaderImpl, each: (key: string, val: string) => void) {
+  static forEach(init: HeaderEntries, each: (key: string, val: string) => void) {
     if (isNil(init)) {
       return;
     }
@@ -65,12 +60,74 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
     }
 
     if (typeof init?.forEach === "function") {
-      (init as Array<[string, string]>).forEach(([ k, v ]) => {
+      (init as Array<[string, string]>).forEach(([k, v]) => {
         each(toCamelCase(k), v);
       });
     }
   }
-  
+
+  static contentType = "Content-Type";
+  static type = {
+    json: "application/json; charset=UTF-8",
+    text: "text/plain; charset=UTF-8",
+    form: "application/x-www-form-urlencoded; charset=UTF-8",
+    formData: "multipart/form-data",
+  };
+
+  /**
+   * 是否是json类型
+   * @param src stirng
+   * @returns boolean
+   */
+  static isJSON(src?: string) {
+    return src?.includes("application/json");
+  }
+
+  /**
+   * 返回 "Content-Type": "application/json; charset=UTF-8" 的headers
+   * @param init HeaderEntries
+   * @returns XsHeaderImpl
+   */
+  static json(init?: HeaderEntries) {
+    let nextHeader = new XsHeaders(init);
+    nextHeader.append(XsHeaders.contentType, XsHeaders.type.json);
+    return nextHeader;
+  }
+   /**
+   * 返回 "Content-Type": "multipart/form-data" 的headers
+   * @param init HeaderEntries
+   * @returns XsHeaderImpl
+   */
+  static formData(init?: HeaderEntries) {
+    let nextHeader = new XsHeaders(init);
+    nextHeader.append(XsHeaders.contentType, XsHeaders.type.formData);
+    return nextHeader;
+  }
+
+  /**
+   * 返回  "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" 的headers
+   * @param init HeaderEntries
+   * @returns XsHeaderImpl
+   */
+  static form(init?: HeaderEntries) {
+    let nextHeader = new XsHeaders(init);
+    nextHeader.append(XsHeaders.contentType, XsHeaders.type.form);
+    return nextHeader;
+  }
+
+  /**
+   * 返回 "Content-Type": "text/plain; charset=UTF-8" 的headers
+   * @param init HeaderEntries
+   * @returns XsHeaderImpl
+   */
+  static text(init?: HeaderEntries) {
+    let nextHeader = new XsHeaders(init);
+    nextHeader.append(XsHeaders.contentType, XsHeaders.type.text);
+    return nextHeader;
+  }
+
+
+
   keys(): IterableIterator<string> {
     return super.keys();
   }

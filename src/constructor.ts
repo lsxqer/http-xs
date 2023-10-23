@@ -1,15 +1,15 @@
 import mergeConfig from "./core/merge";
 import { forEach, isNil, isObject, asyncReject, asyncResolve } from "./utils";
-import { defineInterface, DefineMethod, RequestEntry } from "./define";
+import { UseRequest, define, } from "./define";
 import HttpXsDefaultProto from "./proto";
 import { exectionOfSingleRequest } from "./core/request";
 import XsCancel from "./cancel";
-import XsHeaders, { contentType } from "./headers";
+import XsHeaders from "./headers";
 import retry from "./retry";
 import { asyncIterable } from "./asyncIterator";
 import type { RequestUseCallback, Method, RequestInterface, HttpMethod, CustomRequest } from "./typedef";
 
-const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ] as Method[];
+const methodNamed = ["get", "post", "delete", "put", "patch", "options", "head"] as Method[];
 
 interface RequestInstanceInterface {
 
@@ -118,19 +118,20 @@ function resolveDefaultConfig(requestInstanceInterface?: RequestInstanceInterfac
 
 interface UseFunction<
   R = Instance
-  > {
+> {
   <T = any>(fn: RequestUseCallback<T>): R;
   <T = any>(fns: RequestUseCallback<T>[]): R;
   <T = any>(...fns: RequestUseCallback<T>[]): R;
   delete(fn: RequestUseCallback<any>): boolean;
 }
 
+
 type Instance = Omit<
-  typeof HttpXsDefaultProto, "defineInterface"> &
+  typeof HttpXsDefaultProto, "define"> &
   { [key in Method]: HttpMethod } &
 {
   use: UseFunction;
-  defineInterface: <T extends RequestEntry = RequestEntry >(entry: T) => DefineMethod<T>;
+  define: UseRequest
 };
 
 function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instance {
@@ -147,7 +148,7 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
       uses = instce.baseRequestConf.interceptors = [];
     }
 
-    let queue = [ ...fns ];
+    let queue = [...fns];
 
     while (queue.length > 0) {
       const fn = queue[0];
@@ -179,9 +180,6 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
     };
   });
 
-  instce.defineInterface = function (entry: RequestEntry) {
-    return defineInterface(instce.request, entry);
-  };
 
   instce.setProfix = function (nextUrl: string, replace = false) {
     if (replace) {
@@ -192,15 +190,18 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
     fullInstceConf.baseUrl += nextUrl.replace(/^\/*/, "/");
   };
 
-  instce.request = function instanceRequest(config: RequestInterface) {
+
+  function instanceRequest(config: RequestInterface) {
     let finish = mergeDefaultInceConfig(instce.baseRequestConf, config);
     return exectionOfSingleRequest(finish);
   };
 
+  instce.define = define.bind(null, instanceRequest);
+
+  instce.request = instanceRequest;
   instce.asyncIterable = asyncIterable;
   instce.XsCancel = XsCancel;
   instce.XsHeaders = XsHeaders;
-  instce.contentType = { ...contentType };
   instce.resolve = asyncResolve;
   instce.resject = asyncReject;
   instce.each = forEach;

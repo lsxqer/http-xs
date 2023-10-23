@@ -1,15 +1,18 @@
 import XsHeaders from "../headers";
 import { XsError, validateFetchStatus, ResponseStruct } from "../core/complete";
+// @ts-ignore
 import { Stream } from "stream";
 import { isStream } from "../utils";
 import { asyncReject } from "../utils";
-import type { ClientRequest, IncomingMessage, ClientRequestArgs, RequestInterface, XsHeaderImpl  } from "../typedef";
+import type { ClientRequest, IncomingMessage, ClientRequestArgs, RequestInterface, XsHeaderImpl } from "../typedef";
 import { HttpStatusException } from "../enums";
 
 function getRequest(type: "http" | "https"): ClientRequest {
   if (type === "http") {
+    // @ts-ignore
     return require("http").request;
   }
+  // @ts-ignore
   return require("https").request;
 }
 
@@ -24,6 +27,7 @@ export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseSt
   }
   else {
     try {
+      // @ts-ignore
       requestOptions = require("url").urlToHttpOptions(new URL(opts.url));
     } catch (exx) {
       // handle parse url errx
@@ -89,6 +93,7 @@ export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseSt
       });
 
       stream.on("end", function onStreameEnd() {
+        // @ts-ignore
         let responseBuffer = Buffer.concat(chunks);
         return new ResponseStruct(
           validateFetchStatus(res.statusCode, resolve, reject), responseBuffer, res.statusCode, res.statusMessage, opts, null, resHeader

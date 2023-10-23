@@ -127,6 +127,7 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
     }
   }
 
+  // @ts-ignore
   let timeoutId: NodeJS.Timeout = null;
 
   if (typeof opts.timeout === "number") {

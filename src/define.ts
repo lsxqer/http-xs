@@ -3,41 +3,36 @@ import mergeConfig from "./core/merge";
 import type { HttpMethod, Method, RequestInterface, ResponseStruct } from "./typedef";
 import { isNil } from "./utils";
 
-export interface RequestEntry {
-  [k: string]: {
-    method: Method;
-    url: string;
-  } & Omit<RequestInterface, "url" | "method">;
-}
-
-interface DefineExecute {
-  <S = ResponseStruct<any>>(
+export interface Executable<R> {
+  (
     payload?: RequestInterface["query"] | RequestInterface["body"],
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "query" | "body">
-  ): Promise<S>;
-  send: <S = ResponseStruct<any>>(
+  ): Promise<R>;
+  send: (
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method">
-  ) => Promise<S>;
-  match: <S = ResponseStruct<any>>(
+  ) => Promise<R>;
+  match: (
     matcher: RequestInterface["queryMatch"],
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method" | "queryMatch">
-  ) => Promise<S>;
-  query: <S = ResponseStruct<any>>(
+  ) => Promise<R>;
+  query: (
     params: RequestInterface["query"],
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method" | "query">
-  ) => Promise<S>;
-  mutation: <S = ResponseStruct<any>>(
+  ) => Promise<R>;
+  mutation: (
     body: RequestInterface["body"],
     nextConfig?: Exclude<Partial<RequestInterface>, "url" | "method" | "body">
-  ) => Promise<S>;
+  ) => Promise<R>;
   executing: boolean;
 }
 
-export type DefineMethod<
-  T extends RequestEntry = RequestEntry
-> = {
-    readonly [k in keyof T]: DefineExecute;
-  };
+
+export type DefineRequestConfig = {
+  method: Method;
+  url: string;
+} & Omit<RequestInterface, "url" | "method">;
+
+
 
 type SendRequest<T = any> = (completeOpts: RequestInterface) => Promise<ResponseStruct<T>>;
 export type BaseRequest = {
@@ -50,7 +45,7 @@ const notRequireBody = "get,head,trace" as string;
 function bindBaseRequest(
   fetchRemote: typeof exectionOfSingleRequest,
   mergedConfig: RequestInterface
-): DefineExecute {
+): Executable<unknown> {
 
   async function executor(
     payload?: RequestInterface["query"] | RequestInterface["body"] | null,
@@ -120,7 +115,7 @@ function bindBaseRequest(
 
   executor.executing = false;
 
-  return executor as DefineExecute;
+  return executor as Executable<unknown>;
 }
 
 
@@ -134,7 +129,7 @@ function bindBaseRequest(
  * ```ts
  * const instce = new createInstance({ baseUrl:"http://api.example"});
  * 
- * const user = defineInterface(instce, {
+ * const user = define(instce, {
  *  update: {
  *    method: "put",
  *    url: "/update"
@@ -148,9 +143,9 @@ function bindBaseRequest(
  * user.update({ id: 1 });
  * user.delete(id: 2);
  * 
- * const defineInterface = applyRequest(instce);
+ * const define = useRequest(instce);
  * 
- * const home = defineInterface({
+ * const home = define({
  *  getHomePage: {
  *    method: "get",
  *    url: "/get-home-page"
@@ -159,7 +154,7 @@ function bindBaseRequest(
  * 
  * home.getHomePage({ id: 9 }).then(r => {  });
  * 
- * const list = defineInterface({
+ * const list = define({
  *  getList: {
  *    method: "get",
  *    url: "/list"
@@ -170,12 +165,11 @@ function bindBaseRequest(
  * 
  * ```
  */
-export function defineInterface<
-  T extends RequestEntry = RequestEntry,
-  R extends DefineMethod<T> = DefineMethod<T>
->(exec: BaseRequest, entry: T): R {
+export function define<P extends Record<string, DefineRequestConfig> = Record<string, DefineRequestConfig>>(exec: BaseRequest, defines: P): { [p in keyof P]: Executable<ResponseStruct<unknown>> };
+export function define<T extends Record<string, unknown>>(exec: BaseRequest, defines: { [p in keyof T]: DefineRequestConfig }): { [p in keyof T]: Executable<T[p]> };
+export function define(exec: BaseRequest, defines: Record<string, DefineRequestConfig>): any {
 
-  let entries = Object.entries(entry);
+  let entries = Object.entries(defines);
   let define = {};
 
   for (let [key, def] of entries) {
@@ -187,14 +181,22 @@ export function defineInterface<
     );
   }
 
-  return define as R;
+  return define;
 }
 
 /**
  * 接受一个实例，返回一个函数，函数中使用实例中的方法
  * @param baseRequest {get, post, put...}
- * @returns defineInterface.bind(this,baseRequest)
+ * @returns define.bind(this,baseRequest)
  */
-export function applyRequest(this: ThisType<any>, baseRequest: BaseRequest) {
-  return defineInterface.bind(this, baseRequest);
+export function useRequest(this: ThisType<any>, baseRequest: BaseRequest): UseRequest {
+  return define.bind(this, baseRequest) as UseRequest;
 }
+
+
+export interface UseRequest {
+  <P extends Record<string, DefineRequestConfig> = Record<string, DefineRequestConfig>>(defines: P): { [p in keyof P]: Executable<ResponseStruct<unknown>> };
+  <T extends Record<string, unknown>>(defines: { [p in keyof T]: DefineRequestConfig }): { [p in keyof T]: Executable<T[p]> };
+}
+
+

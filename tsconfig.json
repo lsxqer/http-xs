@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "ES2017",
     "module": "ESNext",
     "declaration": true,
-    "noEmit":true,
+    "noEmit": true,
     "isolatedModules": true,
     "declarationDir": "./@types",
     "declarationMap": false,
@@ -15,25 +15,19 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "listFiles": true,
-    "lib": [
-      "ES2015.Core",
-      "DOM",
-      "ESNEXT",
-      "ESNext.Promise"
-    ],
     "strictPropertyInitialization": false,
     "strictNullChecks": false,
     "allowSyntheticDefaultImports": false,
     "sourceMap": false,
     "noImplicitAny": false,
     "noImplicitThis": true,
-    "types": [
-      "node",
-      "jest"
+    "lib": [
+      "DOM.Iterable",
+      "DOM",
+      "ES2015.Core",
+      "ESNext"
     ],
-    "typeRoots": [
-      "./index.d.ts"
-    ]
+   
   },
   "include": [
     "./src/*"

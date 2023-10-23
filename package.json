@@ -1,7 +1,7 @@
 {
   "name": "http-xs",
-  "version": "1.2.2",
-  "main": "./out/cjs/index.js",
+  "version": "1.2.7",
+  "main": "./out/iife/index.js",
   "module": "./out/esm/index.js",
   "browser": "./out/iife/index.js",
   "typings": "./index.d.ts",
@@ -16,22 +16,13 @@
     "serve": "vite ."
   },
   "devDependencies": {
-    "@types/chai": "^4.3.1",
-    "@types/jest": "^27.4.1",
-    "@types/node": "^17.0.26",
     "@typescript-eslint/eslint-plugin": "^5.20.0",
     "@typescript-eslint/parser": "^5.20.0",
-    "babel-jest": "^27.5.1",
-    "chai": "^4.3.6",
     "eslint": "^8.14.0",
-    "jest": "^27.5.1",
-    "pre-commit": "^1.2.2",
     "rollup": "^2.70.2",
+    "@types/node": "^20.8.7",
     "rollup-plugin-typescript2": "^0.31.2",
-    "ts-jest": "^27.1.4",
-    "ts-node": "^10.7.0",
-    "typescript": "*",
-    "vite": "*"
+    "typescript": "*"
   },
   "keywords": [
     "xhr",
@@ -49,13 +40,6 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
-  },
-  "pre-commit": {
-    "silent": true,
-    "colors": true,
-    "run": [
-      "lint"
-    ]
   },
   "files": [
     "README.md",

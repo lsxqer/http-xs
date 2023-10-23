@@ -10,3 +10,5 @@ coverage/
 src/*.js
 .DS_Store
 *.js.map
+*.lockb
+package-lock.json
