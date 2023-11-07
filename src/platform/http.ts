@@ -35,7 +35,7 @@ export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseSt
     }
   }
 
-  requestOptions.method = opts.method;
+  requestOptions.method = opts.method.toLocaleUpperCase();
 
   if (opts.agent !== undefined) {
     requestOptions.agent = opts.agent;

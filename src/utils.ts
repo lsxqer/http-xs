@@ -26,7 +26,7 @@ export function isStream(tar: any) {
 export function isArray<R = any, T extends Array<R> = Array<R>>(tar: unknown): tar is T {
   return Array.isArray(tar);
 }
-// @ts-ignore
+
 export const isNodePlatform = typeof process !== "undefined" && valueOf(process) === "process";
 
 export function isAbsoluteURL(url: string) {
@@ -47,19 +47,30 @@ export function isEmpty(tar: any): boolean {
   if (isNil(tar)) {
     return true;
   }
-  if (Number.isInteger(tar.length)) {
-    return tar.length === 0;
+  try {
+    if (Number.isInteger(tar.length)) {
+      return tar.length === 0;
+    }
+
+    if ("size" in tar) {
+      return isFunction(tar.size) ? tar.size() === 0 : tar.size === 0;
+    }
+    if ("byteLength" in tar) {
+      return tar.byteLength === 0;
+    }
+    if (isFunction(tar.keys)) {
+      return tar.keys().length === 0;
+    }
+    return Object.keys(tar).length === 0;
+  } catch (error) {
+    if (typeof tar === "boolean") {
+      return false;
+    }
+    if (typeof tar === "number") {
+      return tar === 0;
+    }
+    return false;
   }
-  if ("size" in tar) {
-    return isFunction(tar.size) ? tar.size() === 0 : tar.size === 0;
-  }
-  if ("byteLength" in tar) {
-    return tar.byteLength === 0;
-  }
-  if (isFunction(tar.keys)) {
-    return tar.keys().length === 0;
-  }
-  return Object.keys(tar).length === 0;
 }
 
 
@@ -71,10 +82,10 @@ export function forEach<T extends Record<string, unknown> | Array<unknown> = any
     return target.forEach(each);
   }
   if (isObject(target)) {
-    return Object.entries(target).forEach(([ key, value ]) => each(key as K, value as T[K]));
+    return Object.entries(target).forEach(([key, value]) => each(key as K, value as T[K]));
   }
 
-  for (let [ key, val ] of target as { [Symbol.iterator]() }) {
+  for (let [key, val] of target as { [Symbol.iterator]() }) {
     each(key, val);
   }
 

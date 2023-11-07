@@ -30,7 +30,7 @@ export function xhrRequest<T = any>(opts: RequestInterface): Promise<ResponseStr
     xhr.responseType = opts.responseType.toLocaleLowerCase() as XMLHttpRequestResponseType;
   }
 
-  xhr.open(opts.method, opts.url, true, opts?.auth?.username, opts?.auth?.password);
+  xhr.open(opts.method.toLocaleUpperCase(), opts.url, true, opts?.auth?.username, opts?.auth?.password);
 
   (opts.headers as XsHeaderImpl).forEach(function each(val, key) { xhr.setRequestHeader(key, val) });
 
@@ -146,12 +146,12 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
   }
 
   let req = new globalThis.Request(url, {
+    method: opts.method.toLocaleUpperCase(),
     cache: opts.cache,
     credentials: opts.credentials,
     integrity: opts.integrity,
     keepalive: opts.keepalive,
     body: opts.body as BodyInit,
-    method: opts.method,
     mode: opts.mode,
     headers: header,
     redirect: opts.redirect,

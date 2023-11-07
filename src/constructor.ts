@@ -9,7 +9,7 @@ import retry from "./retry";
 import { asyncIterable } from "./asyncIterator";
 import type { RequestUseCallback, Method, RequestInterface, HttpMethod, CustomRequest } from "./typedef";
 
-const methodNamed = ["get", "post", "delete", "put", "patch", "options", "head"] as Method[];
+const methodNamed = ["get", "post", "delete", "put", "patch", "options", "head"].map(e => e.toLocaleUpperCase()) as Method[];
 
 interface RequestInstanceInterface {
 

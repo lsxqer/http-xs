@@ -50,14 +50,19 @@ const querySerializerMap = {
           val = (val as Date).toISOString();
           break;
         default:
-          val = val.toString();
+          if (isEmpty(val)) {
+            val = "";
+          }
+          else {
+            val = val?.toString();
+          }
           break;
       }
 
       queryList.push(`${encode(key as string)}=${encode(val)}`);
     });
 
-    return queryList.join("&");
+    return  queryList.length > 0 ? "?"+queryList.join("&") : "";
   }
 };
 
@@ -84,7 +89,7 @@ export function urlQuerySerialize(originalUrl = "", opts: RequestInterface) {
 
     nextQueryRaw = serialize(sourceQuery);
 
-    originalUrl += hasUrlInQuery ? "&" : `?${nextQueryRaw}`;
+    originalUrl += hasUrlInQuery ? "&" : `${nextQueryRaw}`;
   }
 
   let queryMatch = opts.queryMatch;

@@ -15,14 +15,11 @@ export default function mergeConfig(
     completeOpts.url = url;
   }
 
-  let header = completeOpts.headers as XsHeaderImpl;
 
   const each = (key: keyof RequestInterface, val) => {
-    if (!(header instanceof XsHeaders)) {
-      header = new XsHeaders();
-    }
 
     if (key === "headers") {
+      let header = completeOpts.headers = new XsHeaders();
       XsHeaders.forEach(val, (k, v) => {
         header.set(k, v);
       });
@@ -52,7 +49,7 @@ export default function mergeConfig(
   if (isObject(options)) {
     forEach(options, each);
   }
-  
+
   if (!isNil(method)) {
     completeOpts.method = method;
   }

@@ -1,6 +1,6 @@
 {
   "name": "http-xs",
-  "version": "1.2.7",
+  "version": "1.2.9",
   "main": "./out/iife/index.js",
   "module": "./out/esm/index.js",
   "browser": "./out/iife/index.js",
@@ -45,6 +45,6 @@
     "README.md",
     "index.d.ts",
     "out",
-    "@types"
+    "@types/index.d.ts"
   ]
 }
