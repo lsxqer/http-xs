@@ -2,8 +2,6 @@ import { isNil, isObject, valueOf } from "./utils";
 import type { XsHeaderImpl } from "./typedef";
 
 
-
-
 /**
  * 将`content-type` 转换为 `Content-Type`
  * @param name key
@@ -60,7 +58,7 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
     }
 
     if (typeof init?.forEach === "function") {
-      (init as Array<[string, string]>).forEach(([k, v]) => {
+      (init as Array<[string, string]>).forEach(([ k, v ]) => {
         each(toCamelCase(k), v);
       });
     }
@@ -71,7 +69,7 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
     json: "application/json; charset=UTF-8",
     text: "text/plain; charset=UTF-8",
     form: "application/x-www-form-urlencoded; charset=UTF-8",
-    formData: "multipart/form-data",
+    formData: "multipart/form-data"
   };
 
   /**
@@ -93,6 +91,7 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
     nextHeader.append(XsHeaders.contentType, XsHeaders.type.json);
     return nextHeader;
   }
+
    /**
    * 返回 "Content-Type": "multipart/form-data" 的headers
    * @param init HeaderEntries
@@ -125,7 +124,6 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
     nextHeader.append(XsHeaders.contentType, XsHeaders.type.text);
     return nextHeader;
   }
-
 
 
   keys(): IterableIterator<string> {

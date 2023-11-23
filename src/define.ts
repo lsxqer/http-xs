@@ -33,7 +33,6 @@ export type DefineRequestConfig = {
 } & Omit<RequestInterface, "url" | "method">;
 
 
-
 type SendRequest<T = any> = (completeOpts: RequestInterface) => Promise<ResponseStruct<T>>;
 export type BaseRequest = {
   [k in Method]?: HttpMethod;
@@ -47,12 +46,23 @@ function bindBaseRequest(
   mergedConfig: RequestInterface
 ): Executable<unknown> {
 
+  
+  async function runWithExecuting(fn: () => Promise<any>) {
+    try {
+      executor.executing = true;
+      return await fn();
+    }
+    finally {
+      executor.executing = false;
+    }
+  }
+
   async function executor(
     payload?: RequestInterface["query"] | RequestInterface["body"] | null,
     nextConfig?: RequestInterface
   ) {
     return runWithExecuting(
-      async () => {
+      () => {
         let config = mergeConfig(mergedConfig, nextConfig);
 
         if (!isNil(payload)) {
@@ -64,19 +74,9 @@ function bindBaseRequest(
           }
         }
 
-        return await fetchRemote(config);
+        return fetchRemote(config);
       }
     );
-  }
-
-  async function runWithExecuting(fn: () => Promise<any>) {
-    try {
-      executor.executing = true;
-      return await fn();
-    }
-    finally {
-      executor.executing = false;
-    }
   }
 
   executor.send = async function request(nextConfig?: RequestInterface) {
@@ -88,7 +88,7 @@ function bindBaseRequest(
       async () => {
         let config = mergeConfig(mergedConfig, nextConfig);
         config.queryMatch = matcher;
-        return await fetchRemote(config);
+        return  fetchRemote(config);
       }
     );
   };
@@ -98,7 +98,7 @@ function bindBaseRequest(
       async () => {
         let config = mergeConfig(mergedConfig, nextConfig);
         config.query = payload;
-        return await fetchRemote(config);
+        return  fetchRemote(config);
       }
     );
   };
@@ -172,7 +172,7 @@ export function define(exec: BaseRequest, defines: Record<string, DefineRequestC
   let entries = Object.entries(defines);
   let define = {};
 
-  for (let [key, def] of entries) {
+  for (let [ key, def ] of entries) {
     let method = def.method;
 
     define[key] = bindBaseRequest(
@@ -198,5 +198,4 @@ export interface UseRequest {
   <P extends Record<string, DefineRequestConfig> = Record<string, DefineRequestConfig>>(defines: P): { [p in keyof P]: Executable<ResponseStruct<unknown>> };
   <T extends Record<string, unknown>>(defines: { [p in keyof T]: DefineRequestConfig }): { [p in keyof T]: Executable<T[p]> };
 }
-
 

@@ -1,6 +1,6 @@
 import mergeConfig from "./core/merge";
 import { forEach, isNil, isObject, asyncReject, asyncResolve } from "./utils";
-import { UseRequest, define, } from "./define";
+import { UseRequest, define } from "./define";
 import HttpXsDefaultProto from "./proto";
 import { exectionOfSingleRequest } from "./core/request";
 import XsCancel from "./cancel";
@@ -9,7 +9,7 @@ import retry from "./retry";
 import { asyncIterable } from "./asyncIterator";
 import type { RequestUseCallback, Method, RequestInterface, HttpMethod, CustomRequest } from "./typedef";
 
-const methodNamed = ["get", "post", "delete", "put", "patch", "options", "head"].map(e => e.toLocaleUpperCase()) as Method[];
+const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ].map(e => e.toLocaleUpperCase()) as Method[];
 
 interface RequestInstanceInterface {
 
@@ -148,7 +148,7 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
       uses = instce.baseRequestConf.interceptors = [];
     }
 
-    let queue = [...fns];
+    let queue = [ ...fns ];
 
     while (queue.length > 0) {
       const fn = queue[0];
@@ -194,7 +194,7 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
   function instanceRequest(config: RequestInterface) {
     let finish = mergeDefaultInceConfig(instce.baseRequestConf, config);
     return exectionOfSingleRequest(finish);
-  };
+  }
 
   instce.define = define.bind(null, instanceRequest);
 

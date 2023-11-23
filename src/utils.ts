@@ -82,10 +82,10 @@ export function forEach<T extends Record<string, unknown> | Array<unknown> = any
     return target.forEach(each);
   }
   if (isObject(target)) {
-    return Object.entries(target).forEach(([key, value]) => each(key as K, value as T[K]));
+    return Object.entries(target).forEach(([ key, value ]) => each(key as K, value as T[K]));
   }
 
-  for (let [key, val] of target as { [Symbol.iterator]() }) {
+  for (let [ key, val ] of target as { [Symbol.iterator]() }) {
     each(key, val);
   }
 

@@ -1,7 +1,7 @@
 
 import XsHeaders from "../headers";
 import { isObject, forEach, isArray, isNil } from "../utils";
-import type { Method, RequestInterface, XsHeaderImpl } from "../typedef";
+import type { Method, RequestInterface } from "../typedef";
 
 export default function mergeConfig(
   url: string | Partial<RequestInterface>,

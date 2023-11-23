@@ -5,7 +5,6 @@ import { toCamelCase, XsHeaders } from "./headers";
 import { exectionOfSingleRequest } from "./core/request";
 import XsCancel from "./cancel";
 import { useRequest, define } from "./define";
-import { asyncResolve, asyncReject } from "./utils";
 import { asyncIterable } from "./asyncIterator";
 import retry from "./retry";
 export * from "./typedef";
@@ -13,7 +12,7 @@ export * from "./enums";
 
 
 const m = {
-  Get, Post, Options, Put, Delete, Patch, Head,
+  Get, Post, Options, Put, Delete, Patch, Head
 };
 
 
@@ -27,7 +26,6 @@ const xs = {
     return acc;
   }, {})
 };
-
 
 
 export {
@@ -63,10 +61,7 @@ export {
 
   XsCancel,
 
-  useRequest, define,
-
-  asyncResolve,
-  asyncReject
+  useRequest, define
 };
 
 export default xs;

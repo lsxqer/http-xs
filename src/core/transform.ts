@@ -5,8 +5,6 @@ import { forEach, isAbsoluteURL, isObject, isNil } from "../utils";
 import { ResponseStruct } from "./complete";
 
 
-
-
 export function encode(input: string): string {
   try {
     return encodeURIComponent(input)
@@ -62,7 +60,7 @@ const querySerializerMap = {
       queryList.push(`${encode(key as string)}=${encode(val)}`);
     });
 
-    return  queryList.length > 0 ? "?"+queryList.join("&") : "";
+    return  queryList.length > 0 ? `?${queryList.join("&")}` : "";
   }
 };
 
@@ -142,7 +140,6 @@ export function transfromRequestPayload(opts: RequestInterface) {
       }
 
       if (isNodePlatform) {
-        // @ts-ignore
         body = Buffer.from(body, "utf-8");
       }
 
@@ -154,7 +151,6 @@ export function transfromRequestPayload(opts: RequestInterface) {
       break;
     case "arraybuffer": {
       if (isNodePlatform) {
-        // @ts-ignore
         body = Buffer.from(new Uint8Array(body as ArrayBuffer));
       }
       break;
@@ -201,7 +197,7 @@ export function transfromResponse(responseStruct: ResponseStruct, responseType: 
       response = response.toString("utf-8");
 
       // 在node环境如果是json就parse一下
-      if (typeof response === "string" && (["text", "utf8"].includes(responseType) === false)) {
+      if (typeof response === "string" && ([ "text", "utf8" ].includes(responseType) === false)) {
         try {
           response = JSON.parse(response);
           /* eslint-disable no-empty */
