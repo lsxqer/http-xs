@@ -1040,7 +1040,7 @@ async function asyncIterable(iterator, map) {
     });
 }
 
-const methodNamed = ["get", "post", "delete", "put", "patch", "options", "head"].map(e => e.toLocaleUpperCase());
+const methodNamed = ["get", "post", "delete", "put", "patch", "options", "head"];
 const defaultMergeKeys = "responseType, customRequest, timeout, requestMode";
 function mergeDefaultInceConfig(instReq, customReq) {
     let { headers, baseUrl = "" } = instReq;

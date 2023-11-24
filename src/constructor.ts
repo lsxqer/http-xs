@@ -9,7 +9,9 @@ import retry from "./retry";
 import { asyncIterable } from "./asyncIterator";
 import type { RequestUseCallback, Method, RequestInterface, HttpMethod, CustomRequest } from "./typedef";
 
-const methodNamed = [ "get", "post", "delete", "put", "patch", "options", "head" ].map(e => e.toLocaleUpperCase()) as Method[];
+const methodNamed = ["get", "post", "delete", "put", "patch", "options", "head"] as Method[];
+
+
 
 interface RequestInstanceInterface {
 
@@ -148,7 +150,7 @@ function createInstance(defaultInstaceConfig?: RequestInstanceInterface): Instan
       uses = instce.baseRequestConf.interceptors = [];
     }
 
-    let queue = [ ...fns ];
+    let queue = [...fns];
 
     while (queue.length > 0) {
       const fn = queue[0];
