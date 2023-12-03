@@ -11,6 +11,7 @@ export function encode(input: string): string {
       .replace(/%3A/gi, ":")
       .replace(/%24/g, "$")
       .replace(/%2C/gi, ",")
+      .replace(/%22/gi, "")
       .replace(/%20/g, "+")
       .replace(/%5B/gi, "[")
       .replace(/%5D/gi, "]");
@@ -27,7 +28,35 @@ const querySerializerMap = {
   "Object": query => {
     let queryList = [];
 
-    forEach(query, function each(key, val) {
+    function buildObject(obj: unknown, ks: string) {
+
+      if (Array.isArray(obj)) {
+        for (let el of obj) {
+          let nextKey = ks;
+          buildObject(el, nextKey);
+          // queryList.push(`${encode(nextKey as string)}=${encode(v as string)}`);
+        }
+        return;
+      }
+
+      if (isObject(obj)) {
+
+        let kpath = ks;
+
+        for (let k in obj) {
+          if (obj.hasOwnProperty(k)) {
+            let nextKey = kpath + "[" + k + "]";
+            buildObject(obj[k], nextKey);
+          }
+        }
+        return;
+      }
+
+      queryList.push(`${encode(ks as string)}=${encode(obj as string)}`);
+    }
+
+
+    function each(key: string, val: unknown) {
       if (val === null || val === "undfefined") {
         return;
       }
@@ -35,18 +64,20 @@ const querySerializerMap = {
       let valType = valueOf(val);
 
       switch (valType) {
-        case "URLSearchParams":
-          val = val.toString();
-          break;
-        case "Array":
-          val = val.join();
-          break;
-        case "Object":
-          val = JSON.stringify(val);
-          break;
         case "Date":
           val = (val as Date).toISOString();
           break;
+        case "URLSearchParams":
+          for (let [k, v] of (val as URLSearchParams).entries()) {
+            // queryList.push(`${encode(`${key}`)}=${encode(val as string)}`);
+            buildObject(v, `${key}[${k}]`);
+          }
+          return;
+        case "Array":
+        case "Object":
+          buildObject(val, key);
+          return;
+
         default:
           if (isEmpty(val)) {
             val = "";
@@ -57,10 +88,12 @@ const querySerializerMap = {
           break;
       }
 
-      queryList.push(`${encode(key as string)}=${encode(val)}`);
-    });
+      queryList.push(`${encode(key as string)}=${encode(val as string)}`);
+    }
 
-    return  queryList.length > 0 ? `?${queryList.join("&")}` : "";
+    forEach(query, each);
+
+    return queryList.length > 0 ? `?${queryList.join("&")}` : "";
   }
 };
 
@@ -76,11 +109,9 @@ export function urlQuerySerialize(originalUrl = "", opts: RequestInterface) {
 
   if (!isNil(sourceQuery)) {
     let nextQueryRaw = "";
-
     // query -> urlSearchParams
     // query -> string
     // query -> dict
-    // query -> list
 
     let sourceQueryType = valueOf(sourceQuery);
     let serialize = querySerializerMap[sourceQueryType];
@@ -197,7 +228,7 @@ export function transfromResponse(responseStruct: ResponseStruct, responseType: 
       response = response.toString("utf-8");
 
       // 在node环境如果是json就parse一下
-      if (typeof response === "string" && ([ "text", "utf8" ].includes(responseType) === false)) {
+      if (typeof response === "string" && (["text", "utf8"].includes(responseType) === false)) {
         try {
           response = JSON.parse(response);
           /* eslint-disable no-empty */

@@ -341,6 +341,7 @@
               .replace(/%3A/gi, ":")
               .replace(/%24/g, "$")
               .replace(/%2C/gi, ",")
+              .replace(/%22/gi, "")
               .replace(/%20/g, "+")
               .replace(/%5B/gi, "[")
               .replace(/%5D/gi, "]");
@@ -355,24 +356,46 @@
       "URLSearchParams": query => query.toString(),
       "Object": query => {
           let queryList = [];
-          forEach(query, function each(key, val) {
+          function buildObject(obj, ks) {
+              if (Array.isArray(obj)) {
+                  for (let el of obj) {
+                      let nextKey = ks;
+                      buildObject(el, nextKey);
+                      // queryList.push(`${encode(nextKey as string)}=${encode(v as string)}`);
+                  }
+                  return;
+              }
+              if (isObject(obj)) {
+                  let kpath = ks;
+                  for (let k in obj) {
+                      if (obj.hasOwnProperty(k)) {
+                          let nextKey = kpath + "[" + k + "]";
+                          buildObject(obj[k], nextKey);
+                      }
+                  }
+                  return;
+              }
+              queryList.push(`${encode(ks)}=${encode(obj)}`);
+          }
+          function each(key, val) {
               if (val === null || val === "undfefined") {
                   return;
               }
               let valType = valueOf(val);
               switch (valType) {
-                  case "URLSearchParams":
-                      val = val.toString();
-                      break;
-                  case "Array":
-                      val = val.join();
-                      break;
-                  case "Object":
-                      val = JSON.stringify(val);
-                      break;
                   case "Date":
                       val = val.toISOString();
                       break;
+                  case "URLSearchParams":
+                      for (let [k, v] of val.entries()) {
+                          // queryList.push(`${encode(`${key}`)}=${encode(val as string)}`);
+                          buildObject(v, `${key}[${k}]`);
+                      }
+                      return;
+                  case "Array":
+                  case "Object":
+                      buildObject(val, key);
+                      return;
                   default:
                       if (isEmpty(val)) {
                           val = "";
@@ -383,7 +406,8 @@
                       break;
               }
               queryList.push(`${encode(key)}=${encode(val)}`);
-          });
+          }
+          forEach(query, each);
           return queryList.length > 0 ? `?${queryList.join("&")}` : "";
       }
   };
@@ -398,7 +422,6 @@
           // query -> urlSearchParams
           // query -> string
           // query -> dict
-          // query -> list
           let sourceQueryType = valueOf(sourceQuery);
           let serialize = querySerializerMap[sourceQueryType];
           nextQueryRaw = serialize(sourceQuery);
