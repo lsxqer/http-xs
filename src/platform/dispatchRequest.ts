@@ -1,7 +1,7 @@
 
 import type { RequestInterface, ResponseStruct } from "../typedef";
 import { fetchRequest, xhrRequest } from "./browser";
-import { isNodePlatform } from "../utils";
+import { isAsyncFunction, isNodePlatform } from "../utils";
 import { nodeRequest } from "./http";
 
 /**
@@ -10,12 +10,21 @@ import { nodeRequest } from "./http";
  * @returns request 一个用于执行请求的函数
  */
 export default function dispatchRequest(config: RequestInterface): <T = any>(opts: RequestInterface) => Promise<ResponseStruct<T>> {
-
+  let existRequestMode = config.requestMode;
+  let haveRequestMode = existRequestMode === "fetch" || existRequestMode === "xhr";
   // custom request
   if (typeof config.customRequest === "function") {
     return config.customRequest;
   }
   if (isNodePlatform) {
+    if (typeof fetch !== "undefined") {
+      if (isAsyncFunction(fetch)) {
+        if (!haveRequestMode) {
+          config.requestMode = "fetch";
+        }
+        return fetchRequest;
+      }
+    }
     return nodeRequest;
   }
   if (

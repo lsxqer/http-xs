@@ -22,6 +22,7 @@ export declare class XsHeaders extends URLSearchParams implements XsHeaderImpl {
      * @returns boolean
      */
     static isJSON(src?: string): boolean;
+    static isPlainText(src?: string): boolean;
     /**
      * 返回 "Content-Type": "application/json; charset=UTF-8" 的headers
      * @param init HeaderEntries

@@ -7,6 +7,7 @@ export declare const asyncReject: <T = never>(reason?: any) => Promise<T>;
 export declare function valueOf(tar: unknown): string;
 export declare function isObject<T = Record<string, unknown>>(tar: unknown): tar is T;
 export declare function isFunction<T = (...args: any[]) => void>(tar: unknown): tar is T;
+export declare function isAsyncFunction<T = (...args: any[]) => Promise<void>>(tar: unknown): tar is T;
 export declare function isStream(tar: any): "" | "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function";
 export declare function isArray<R = any, T extends Array<R> = Array<R>>(tar: unknown): tar is T;
 export declare const isNodePlatform: boolean;

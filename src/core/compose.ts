@@ -31,14 +31,18 @@ export function compose(fns: RequestUseCallback[] = []) {
         return asyncResolve(processNextArg);
       }
 
-      return asyncResolve(fn(processNextArg, nextCallback) as any)
-        .then(next => {
-          if (next !== undefined) {
-            processNextArg = next as any;
-          }
+      const promessHanlder = (next: RequestInterface) => {
+        if (next !== undefined) {
+          processNextArg = next as any;
+        }
 
-          return typeof nextCallback === "function" ? nextCallback() : processNextArg;
-        });
+        return typeof nextCallback === "function" ? nextCallback() : processNextArg;
+      }
+      return asyncResolve(fn(processNextArg, nextCallback) as any)
+        .then(promessHanlder)
+        .catch(promessHanlder)
+        .catch(e => asyncReject(promessHanlder(e)));
+
     }
 
     return run(0);

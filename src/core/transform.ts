@@ -225,14 +225,21 @@ export function transfromResponse(responseStruct: ResponseStruct, responseType: 
       }
     /* eslint-disable no-fallthrough */
     default: {
-      response = response.toString("utf-8");
+      const contentType = responseStruct.headers.get(XsHeaders.contentType);
+      if (XsHeaders.isJSON(contentType) && typeof response === "string") {
+        response = JSON.parse(response);
+      }
 
-      // 在node环境如果是json就parse一下
-      if (typeof response === "string" && (["text", "utf8"].includes(responseType) === false)) {
-        try {
-          response = JSON.parse(response);
-          /* eslint-disable no-empty */
-        } catch (err) { }
+      if (isNodePlatform) {
+        if (typeof response === "string" && (["text", "utf8"].includes(responseType) === false)) {
+          try {
+            response = JSON.parse(response);
+            /* eslint-disable no-empty */
+          } catch (err) { }
+        }
+        if (Buffer.isBuffer(response)) {
+          response = response.toString("utf-8");
+        }
       }
     }
   }

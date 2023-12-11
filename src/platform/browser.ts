@@ -6,7 +6,7 @@ import XsCancel from "../cancel";
 import { HttpStatusException } from "../enums";
 
 const each = (init, line) => {
-  let [ key, val ] = line.split(":");
+  let [key, val] = line.split(":");
   init[key] = val.trim();
   return init;
 };
@@ -160,42 +160,45 @@ export async function fetchRequest<T = any>(opts: RequestInterface): Promise<Res
   });
 
   let readBody;
+  return new Promise(async (resolve, reject) => {
 
-  try {
-    readBody = await globalThis.fetch(req);
+    try {
+      readBody = await globalThis.fetch(req);
+      let body = readBody.clone();
+      let response = await readBody[opts.responseType]().catch(() => body.text());
+      let xsHeader = new XsHeaders();
 
-    let body = readBody.clone();
-    let response = await readBody[opts.responseType]().catch(() => body.text());
-    let xsHeader = new XsHeaders();
+      body.headers.forEach((val, key) => xsHeader.set(key, val));
 
-    body.headers.forEach((val, key) => xsHeader.set(key, val));
+      return new ResponseStruct<T>(
+        validateFetchStatus(body.status, resolve, reject),
+        response,
+        body.status,
+        body.statusText,
+        opts,
+        body.type,
+        xsHeader
+      );
 
-    return new ResponseStruct<T>(
-      validateFetchStatus(body.status, asyncResolve, asyncReject),
-      response,
-      body.status,
-      body.statusText,
-      opts,
-      body.type,
-      xsHeader
-    );
+    } catch (exx) {
+      let header = new XsHeaders();
 
-  } catch (exx) {
-    let header = new XsHeaders();
-
-    // fetch 取消请求时的错误对象 —> DOMException
-    if (exx instanceof DOMException) {
-      if (!isNil(opts.cancel) || !isNil(opts.signal)) {
-        return asyncReject(new XsError(HttpStatusException.Cancel, `[Http-Xs]: Client Abort ${exx.toString()}`, opts, header, "abort"));
+      // fetch 取消请求时的错误对象 —> DOMException
+      if (exx instanceof DOMException) {
+        if (!isNil(opts.cancel) || !isNil(opts.signal)) {
+          return reject(new XsError(HttpStatusException.Cancel, `[Http-Xs]: Client Abort ${exx.toString()}`, opts, header, "abort"));
+        }
+        if (timeoutId !== null) {
+          return reject(new XsError(HttpStatusException.Timeout, `[Http-Xs]: Network Timeout of ${opts.timeout}ms`, opts, header, "timeout"));
+        }
       }
+      return reject(new XsError(HttpStatusException.Error, `[Http-Xs]: ${(exx as Error).message}`, opts, header, "error"));
+    } finally {
       if (timeoutId !== null) {
-        return asyncReject(new XsError(HttpStatusException.Timeout, `[Http-Xs]: Network Timeout of ${opts.timeout}ms`, opts, header, "timeout"));
+        clearTimeout(timeoutId);
       }
     }
-    return asyncReject(new XsError(HttpStatusException.Error, `[Http-Xs]: ${(exx as Error).message}`, opts, header, "error"));
-  } finally {
-    if (timeoutId !== null) {
-      clearTimeout(timeoutId);
-    }
-  }
+  });
+
+
 }

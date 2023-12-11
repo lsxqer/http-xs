@@ -11,7 +11,6 @@ export function exectionOfSingleRequest<T = any>(completeOpts: RequestInterface)
 	return compose([ completeOpts.interceptor ].flat(3).filter(Boolean))(completeOpts, async function requestExection(options: RequestInterface) {
 
 		options.url = urlQuerySerialize(options.url, options);
-
 		options.headers = new XsHeaders(options.headers);
 
 		if (!isNil(options.body)) {
@@ -20,7 +19,6 @@ export function exectionOfSingleRequest<T = any>(completeOpts: RequestInterface)
 
 		// 分配request
 		let localRequest = dispatchRequest(options);
-
 		let responseType = options.responseType;
 
 		// responType为空时设置默认responseType
@@ -37,6 +35,9 @@ export function exectionOfSingleRequest<T = any>(completeOpts: RequestInterface)
 			// 处理响应
 			return transfromResponse(responseStruct, responseType);
 		} catch (exx) {
+			if (exx instanceof ResponseStruct) {
+				return asyncReject(transfromResponse(exx, responseType));
+			}
 			return asyncReject(exx);
 		}
 	});

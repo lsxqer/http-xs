@@ -33,6 +33,17 @@ main() async {
         }));
         res.close();
         break;
+      case "/err":
+        res.statusCode = 400;
+        // res.write("1123error");
+        // res.headers.contentType =ContentType.json;
+          res.write(jsonEncode(<String, dynamic>{
+          "data": [1, 2, 3, 4],
+          "ok": true,
+          "total": 100
+        }));
+        res.close();
+        break;
       case "/json-payload":
         req.listen((data) {
           res.write(jsonEncode(<String, dynamic>{

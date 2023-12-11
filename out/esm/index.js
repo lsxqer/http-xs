@@ -11,6 +11,9 @@ function isObject(tar) {
 function isFunction(tar) {
     return typeof tar === "function";
 }
+function isAsyncFunction(tar) {
+    return valueOf(tar) === "AsyncFunction";
+}
 function isStream(tar) {
     return isObject(tar) && typeof isFunction(tar.pipe);
 }
@@ -127,6 +130,9 @@ class XsHeaders extends URLSearchParams {
      */
     static isJSON(src) {
         return src === null || src === void 0 ? void 0 : src.includes("application/json");
+    }
+    static isPlainText(src) {
+        return src === null || src === void 0 ? void 0 : src.includes("text/plain");
     }
     /**
      * 返回 "Content-Type": "application/json; charset=UTF-8" 的headers
@@ -507,14 +513,21 @@ function transfromResponse(responseStruct, responseType) {
             }
         /* eslint-disable no-fallthrough */
         default: {
-            response = response.toString("utf-8");
-            // 在node环境如果是json就parse一下
-            if (typeof response === "string" && (["text", "utf8"].includes(responseType) === false)) {
-                try {
-                    response = JSON.parse(response);
-                    /* eslint-disable no-empty */
+            const contentType = responseStruct.headers.get(XsHeaders.contentType);
+            if (XsHeaders.isJSON(contentType) && typeof response === "string") {
+                response = JSON.parse(response);
+            }
+            if (isNodePlatform) {
+                if (typeof response === "string" && (["text", "utf8"].includes(responseType) === false)) {
+                    try {
+                        response = JSON.parse(response);
+                        /* eslint-disable no-empty */
+                    }
+                    catch (err) { }
                 }
-                catch (err) { }
+                if (Buffer.isBuffer(response)) {
+                    response = response.toString("utf-8");
+                }
             }
         }
     }
@@ -541,13 +554,16 @@ function compose(fns = []) {
             if (typeof fn !== "function") {
                 return asyncResolve(processNextArg);
             }
-            return asyncResolve(fn(processNextArg, nextCallback))
-                .then(next => {
+            const promessHanlder = (next) => {
                 if (next !== undefined) {
                     processNextArg = next;
                 }
                 return typeof nextCallback === "function" ? nextCallback() : processNextArg;
-            });
+            };
+            return asyncResolve(fn(processNextArg, nextCallback))
+                .then(promessHanlder)
+                .catch(promessHanlder)
+                .catch(e => asyncReject(promessHanlder(e)));
         }
         return run(0);
     };
@@ -820,32 +836,34 @@ async function fetchRequest(opts) {
         signal: cancelController === null || cancelController === void 0 ? void 0 : cancelController.signal
     });
     let readBody;
-    try {
-        readBody = await globalThis.fetch(req);
-        let body = readBody.clone();
-        let response = await readBody[opts.responseType]().catch(() => body.text());
-        let xsHeader = new XsHeaders();
-        body.headers.forEach((val, key) => xsHeader.set(key, val));
-        return new ResponseStruct(validateFetchStatus(body.status, asyncResolve, asyncReject), response, body.status, body.statusText, opts, body.type, xsHeader);
-    }
-    catch (exx) {
-        let header = new XsHeaders();
-        // fetch 取消请求时的错误对象 —> DOMException
-        if (exx instanceof DOMException) {
-            if (!isNil(opts.cancel) || !isNil(opts.signal)) {
-                return asyncReject(new XsError(HttpStatusException.Cancel, `[Http-Xs]: Client Abort ${exx.toString()}`, opts, header, "abort"));
+    return new Promise(async (resolve, reject) => {
+        try {
+            readBody = await globalThis.fetch(req);
+            let body = readBody.clone();
+            let response = await readBody[opts.responseType]().catch(() => body.text());
+            let xsHeader = new XsHeaders();
+            body.headers.forEach((val, key) => xsHeader.set(key, val));
+            return new ResponseStruct(validateFetchStatus(body.status, resolve, reject), response, body.status, body.statusText, opts, body.type, xsHeader);
+        }
+        catch (exx) {
+            let header = new XsHeaders();
+            // fetch 取消请求时的错误对象 —> DOMException
+            if (exx instanceof DOMException) {
+                if (!isNil(opts.cancel) || !isNil(opts.signal)) {
+                    return reject(new XsError(HttpStatusException.Cancel, `[Http-Xs]: Client Abort ${exx.toString()}`, opts, header, "abort"));
+                }
+                if (timeoutId !== null) {
+                    return reject(new XsError(HttpStatusException.Timeout, `[Http-Xs]: Network Timeout of ${opts.timeout}ms`, opts, header, "timeout"));
+                }
             }
+            return reject(new XsError(HttpStatusException.Error, `[Http-Xs]: ${exx.message}`, opts, header, "error"));
+        }
+        finally {
             if (timeoutId !== null) {
-                return asyncReject(new XsError(HttpStatusException.Timeout, `[Http-Xs]: Network Timeout of ${opts.timeout}ms`, opts, header, "timeout"));
+                clearTimeout(timeoutId);
             }
         }
-        return asyncReject(new XsError(HttpStatusException.Error, `[Http-Xs]: ${exx.message}`, opts, header, "error"));
-    }
-    finally {
-        if (timeoutId !== null) {
-            clearTimeout(timeoutId);
-        }
-    }
+    });
 }
 
 function getRequest(type) {
@@ -965,11 +983,21 @@ function nodeRequest(opts) {
  * @returns request 一个用于执行请求的函数
  */
 function dispatchRequest(config) {
+    let existRequestMode = config.requestMode;
+    let haveRequestMode = existRequestMode === "fetch" || existRequestMode === "xhr";
     // custom request
     if (typeof config.customRequest === "function") {
         return config.customRequest;
     }
     if (isNodePlatform) {
+        if (typeof fetch !== "undefined") {
+            if (isAsyncFunction(fetch)) {
+                if (!haveRequestMode) {
+                    config.requestMode = "fetch";
+                }
+                return fetchRequest;
+            }
+        }
         return nodeRequest;
     }
     if (config.requestMode === "xhr" ||
@@ -1009,6 +1037,9 @@ function exectionOfSingleRequest(completeOpts) {
             return transfromResponse(responseStruct, responseType);
         }
         catch (exx) {
+            if (exx instanceof ResponseStruct) {
+                return asyncReject(transfromResponse(exx, responseType));
+            }
             return asyncReject(exx);
         }
     });

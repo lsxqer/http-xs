@@ -100,7 +100,9 @@ export function nodeRequest<T = any>(opts: RequestInterface): Promise<ResponseSt
 
 
     req.on("error", function onError(exx) {
-      if (req.destroyed) { return }
+      if (req.destroyed) {
+        return;
+      }
       return reject(new XsError(HttpStatusException.Error, `[Http-Xs]: Network Error:\n${exx.message}`, opts, undefined, "error"));
     });
 

@@ -18,6 +18,9 @@ export function isObject<T = Record<string, unknown>>(tar: unknown): tar is T {
 export function isFunction<T = (...args: any[]) => void>(tar: unknown): tar is T {
   return typeof tar === "function";
 }
+export function isAsyncFunction<T = (...args: any[]) => Promise<void>>(tar: unknown): tar is T {
+  return valueOf(tar) === "AsyncFunction";
+}
 
 export function isStream(tar: any) {
   return isObject(tar) && typeof isFunction(tar.pipe);

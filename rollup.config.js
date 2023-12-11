@@ -11,6 +11,7 @@ export default {
       useTsconfigDeclarationDir: true,
     }),
   ],
+  
   output: [
     {
       file: pkg.module,

@@ -80,6 +80,9 @@ export class XsHeaders extends URLSearchParams implements XsHeaderImpl {
   static isJSON(src?: string) {
     return src?.includes("application/json");
   }
+  static isPlainText(src?: string) {
+    return src?.includes("text/plain");
+  }
 
   /**
    * 返回 "Content-Type": "application/json; charset=UTF-8" 的headers
