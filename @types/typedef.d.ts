@@ -1,6 +1,3 @@
-/// <reference types="node" />
-/// <reference types="node" />
-/// <reference types="node" />
 import type { Agent, ClientRequest, ClientRequestArgs, IncomingMessage } from "http";
 import { ReadStream } from "fs";
 import { ResponseStruct } from "./core/complete";

@@ -1,6 +1,6 @@
 {
   "name": "http-xs",
-  "version": "1.2.9",
+  "version": "1.3.0",
   "main": "./out/iife/index.js",
   "module": "./out/esm/index.js",
   "browser": "./out/iife/index.js",
@@ -35,7 +35,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/lsxqer/http-xs"
+    "url": "git+https://github.com/lsxqer/http-xs.git"
   },
   "homepage": "https://github.com/lsxqer/http-xs",
   "publishConfig": {
@@ -45,18 +45,8 @@
   "files": [
     "README.md",
     "index.d.ts",
-    "out",
-    "@types/index.d.ts",
-    "@types/typedef.d.ts",
-    "@types/core/httpMethod.d.ts",
-    "@types/enums.d.ts",
-    "@types/constructor.d.ts",
-    "@types/proto.d.ts",
-    "@types/httpMethod.d.ts",
-    "@types/headers.d.ts",
-    "@types/cancel.d.ts",
-    "@types/define.d.ts",
-    "@types/asyncIterator.d.ts",
-    "@types/retry.d.ts"
+    "out/esm/index.js",
+    "out/iife/index.js",
+    "@types"
   ]
 }

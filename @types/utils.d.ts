@@ -1,7 +1,7 @@
 export declare const asyncResolve: {
     (): Promise<void>;
     <T>(value: T): Promise<Awaited<T>>;
-    <T_1>(value: T_1 | PromiseLike<T_1>): Promise<Awaited<T_1>>;
+    <T>(value: T | PromiseLike<T>): Promise<Awaited<T>>;
 };
 export declare const asyncReject: <T = never>(reason?: any) => Promise<T>;
 export declare function valueOf(tar: unknown): string;

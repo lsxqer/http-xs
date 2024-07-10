@@ -13,9 +13,9 @@ declare const HttpXsDefaultProto: {
     resolve: {
         (): Promise<void>;
         <T>(value: T): Promise<Awaited<T>>;
-        <T_1>(value: T_1 | PromiseLike<T_1>): Promise<Awaited<T_1>>;
+        <T>(value: T | PromiseLike<T>): Promise<Awaited<T>>;
     };
-    reject: <T_2 = never>(reason?: any) => Promise<T_2>;
+    reject: <T = never>(reason?: any) => Promise<T>;
     each: typeof forEach;
     retry: typeof retry;
     define: typeof define;

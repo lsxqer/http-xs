@@ -1,5 +1,3 @@
-/// <reference types="node" />
-/// <reference types="node" />
 import type { RequestInterface } from "../typedef";
 import { ResponseStruct } from "./complete";
 export declare function encode(input: string): string;
