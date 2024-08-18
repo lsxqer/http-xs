@@ -219,27 +219,29 @@ export function transfromResponse(responseStruct: ResponseStruct, responseType: 
       break;
     case "text":
     case "utf8":
+      if (isNodePlatform && Buffer.isBuffer(response)) {
+        response = response.toString("utf-8");
+        break;
+      }
     case "json":
       if (!isNodePlatform) {
         break;
       }
-    /* eslint-disable no-fallthrough */
+      if (Buffer.isBuffer(response)) {
+        response = response.toString("utf-8");
+      }
+      try {
+        response = JSON.parse(response);
+      } catch (error) {
+        throw Error("responseType is not support");
+      }
     default: {
       const contentType = responseStruct.headers.get(XsHeaders.contentType);
       if (XsHeaders.isJSON(contentType) && typeof response === "string") {
         response = JSON.parse(response);
       }
-
-      if (isNodePlatform) {
-        if (typeof response === "string" && (["text", "utf8"].includes(responseType) === false)) {
-          try {
-            response = JSON.parse(response);
-            /* eslint-disable no-empty */
-          } catch (err) { }
-        }
-        if (Buffer.isBuffer(response)) {
-          response = response.toString("utf-8");
-        }
+      if (isNodePlatform && Buffer.isBuffer(response)) {
+        response = response.toString("utf-8");
       }
     }
   }
